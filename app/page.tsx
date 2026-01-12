@@ -1,9 +1,9 @@
 "use client";
 
-import { ImageDropzone } from "@/components/dither/image-dropzone";
-import { ControlsPanel } from "@/components/dither/controls-panel";
 import { CanvasPreview } from "@/components/dither/canvas-preview";
+import { ControlsPanel } from "@/components/dither/controls-panel";
 import { DownloadButton } from "@/components/dither/download-button";
+import { ImageDropzone } from "@/components/dither/image-dropzone";
 import { useDither } from "@/hooks/use-dither";
 
 export default function DitherPage() {
@@ -18,37 +18,42 @@ export default function DitherPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">Blue Noise Dither</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="font-bold text-4xl tracking-tight">
+            Blue Noise Dither
+          </h1>
+          <p className="mt-2 text-muted-foreground">
             Apply high-quality blue noise dithering to your images
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[400px_1fr]">
           <aside className="space-y-6">
             <ImageDropzone
-              onImageUpload={setUploadedImage}
               currentImage={uploadedImage}
+              onImageUpload={setUploadedImage}
             />
 
             <ControlsPanel
-              parameters={parameters}
-              onParametersChange={updateParameters}
               disabled={!uploadedImage}
+              onParametersChange={updateParameters}
+              parameters={parameters}
             />
 
             {ditheredImage && (
-              <DownloadButton imageData={ditheredImage} filename="dithered-image.png" />
+              <DownloadButton
+                filename="dithered-image.png"
+                imageData={ditheredImage}
+              />
             )}
           </aside>
 
           <main>
             <CanvasPreview
-              uploadedImage={uploadedImage}
               ditheredImage={ditheredImage}
               isProcessing={isProcessing}
+              uploadedImage={uploadedImage}
             />
           </main>
         </div>

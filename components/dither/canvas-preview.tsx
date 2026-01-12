@@ -18,7 +18,7 @@ export function CanvasPreview({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!ditheredImage || !canvasRef.current) return;
+    if (!(ditheredImage && canvasRef.current)) return;
 
     const canvas = canvasRef.current;
     canvas.width = ditheredImage.width;
@@ -32,9 +32,11 @@ export function CanvasPreview({
 
   if (!uploadedImage) {
     return (
-      <Card className="h-[600px] flex items-center justify-center">
+      <Card className="flex h-[600px] items-center justify-center">
         <CardContent>
-          <p className="text-muted-foreground">Upload an image to get started</p>
+          <p className="text-muted-foreground">
+            Upload an image to get started
+          </p>
         </CardContent>
       </Card>
     );
@@ -43,8 +45,8 @@ export function CanvasPreview({
   if (isProcessing) {
     return (
       <Card className="h-[600px]">
-        <CardContent className="p-6 h-full">
-          <Skeleton className="w-full h-full" />
+        <CardContent className="h-full p-6">
+          <Skeleton className="h-full w-full" />
         </CardContent>
       </Card>
     );
@@ -54,8 +56,8 @@ export function CanvasPreview({
     <Card>
       <CardContent className="p-6">
         <canvas
+          className="h-auto w-full rounded border border-border"
           ref={canvasRef}
-          className="w-full h-auto border border-border rounded"
         />
       </CardContent>
     </Card>

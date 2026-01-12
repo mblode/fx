@@ -1,12 +1,24 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NOISE_TEXTURES } from "@/lib/noise/textures";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import type { DitherParameters } from "@/lib/dither/types";
+import { NOISE_TEXTURES } from "@/lib/noise/textures";
 
 interface ControlsPanelProps {
   parameters: DitherParameters;
@@ -14,35 +26,41 @@ interface ControlsPanelProps {
   disabled?: boolean;
 }
 
-export function ControlsPanel({ parameters, onParametersChange, disabled }: ControlsPanelProps) {
+export function ControlsPanel({
+  parameters,
+  onParametersChange,
+  disabled,
+}: ControlsPanelProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Dither Parameters</CardTitle>
-        <CardDescription>Adjust settings to customize the effect</CardDescription>
+        <CardDescription>
+          Adjust settings to customize the effect
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="foreground">Foreground Color</Label>
           <Input
+            className="h-12 cursor-pointer"
+            disabled={disabled}
             id="foreground"
+            onChange={(e) => onParametersChange({ foreground: e.target.value })}
             type="color"
             value={parameters.foreground}
-            onChange={(e) => onParametersChange({ foreground: e.target.value })}
-            disabled={disabled}
-            className="h-12 cursor-pointer"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="background">Background Color</Label>
           <Input
+            className="h-12 cursor-pointer"
+            disabled={disabled}
             id="background"
+            onChange={(e) => onParametersChange({ background: e.target.value })}
             type="color"
             value={parameters.background}
-            onChange={(e) => onParametersChange({ background: e.target.value })}
-            disabled={disabled}
-            className="h-12 cursor-pointer"
           />
         </div>
 
@@ -51,22 +69,24 @@ export function ControlsPanel({ parameters, onParametersChange, disabled }: Cont
             Contrast: {parameters.contrast.toFixed(2)}
           </Label>
           <Slider
+            disabled={disabled}
             id="contrast"
-            min={0.5}
             max={2.0}
+            min={0.5}
+            onValueChange={([value]) => onParametersChange({ contrast: value })}
             step={0.05}
             value={[parameters.contrast]}
-            onValueChange={([value]) => onParametersChange({ contrast: value })}
-            disabled={disabled}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="noiseSize">Noise Texture Size</Label>
           <Select
-            value={parameters.noiseSize.toString()}
-            onValueChange={(value) => onParametersChange({ noiseSize: parseInt(value) })}
             disabled={disabled}
+            onValueChange={(value) =>
+              onParametersChange({ noiseSize: Number.parseInt(value) })
+            }
+            value={parameters.noiseSize.toString()}
           >
             <SelectTrigger id="noiseSize">
               <SelectValue />
@@ -85,37 +105,41 @@ export function ControlsPanel({ parameters, onParametersChange, disabled }: Cont
           <Label>Resize Output (optional)</Label>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="width" className="text-xs text-muted-foreground">
+              <Label className="text-muted-foreground text-xs" htmlFor="width">
                 Width
               </Label>
               <Input
+                disabled={disabled}
                 id="width"
-                type="number"
-                placeholder="Auto"
-                value={parameters.width || ""}
                 onChange={(e) =>
                   onParametersChange({
-                    width: e.target.value ? parseInt(e.target.value) : undefined,
+                    width: e.target.value
+                      ? Number.parseInt(e.target.value)
+                      : undefined,
                   })
                 }
-                disabled={disabled}
+                placeholder="Auto"
+                type="number"
+                value={parameters.width || ""}
               />
             </div>
             <div>
-              <Label htmlFor="height" className="text-xs text-muted-foreground">
+              <Label className="text-muted-foreground text-xs" htmlFor="height">
                 Height
               </Label>
               <Input
+                disabled={disabled}
                 id="height"
-                type="number"
-                placeholder="Auto"
-                value={parameters.height || ""}
                 onChange={(e) =>
                   onParametersChange({
-                    height: e.target.value ? parseInt(e.target.value) : undefined,
+                    height: e.target.value
+                      ? Number.parseInt(e.target.value)
+                      : undefined,
                   })
                 }
-                disabled={disabled}
+                placeholder="Auto"
+                type="number"
+                value={parameters.height || ""}
               />
             </div>
           </div>

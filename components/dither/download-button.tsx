@@ -1,14 +1,17 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DownloadButtonProps {
   imageData: ImageData;
   filename?: string;
 }
 
-export function DownloadButton({ imageData, filename = "dithered-image.png" }: DownloadButtonProps) {
+export function DownloadButton({
+  imageData,
+  filename = "dithered-image.png",
+}: DownloadButtonProps) {
   const handleDownload = () => {
     const canvas = document.createElement("canvas");
     canvas.width = imageData.width;
@@ -33,8 +36,8 @@ export function DownloadButton({ imageData, filename = "dithered-image.png" }: D
   };
 
   return (
-    <Button onClick={handleDownload} className="w-full" size="lg">
-      <Download className="w-4 h-4 mr-2" />
+    <Button className="w-full" onClick={handleDownload} size="lg">
+      <Download className="mr-2 h-4 w-4" />
       Download Dithered Image
     </Button>
   );

@@ -1,5 +1,5 @@
 import type { DitherParameters, NoiseTexture } from "./types";
-import { hexToRgb, wrap, applyContrast } from "./utils";
+import { applyContrast, hexToRgb, wrap } from "./utils";
 
 /**
  * Load an image from a File object

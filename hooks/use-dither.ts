@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useDebounce } from "./use-debounce";
+import { useCallback, useEffect, useState } from "react";
 import { applyDither } from "@/lib/dither/core";
-import {
-  NOISE_TEXTURES,
-  loadNoiseTexture,
-} from "@/lib/noise/textures";
 import type { DitherParameters } from "@/lib/dither/types";
+import { loadNoiseTexture, NOISE_TEXTURES } from "@/lib/noise/textures";
+import { useDebounce } from "./use-debounce";
 
 const DEFAULT_PARAMETERS: DitherParameters = {
   foreground: "#000000",
@@ -49,11 +46,7 @@ export function useDither() {
         const noise = await loadNoiseTexture(noiseTexture.dataUrl);
 
         // Apply dithering
-        const result = await applyDither(
-          uploadedImage,
-          noise,
-          debouncedParams
-        );
+        const result = await applyDither(uploadedImage, noise, debouncedParams);
 
         setDitheredImage(result);
       } catch (error) {
@@ -66,12 +59,9 @@ export function useDither() {
     processDither();
   }, [uploadedImage, debouncedParams]);
 
-  const updateParameters = useCallback(
-    (updates: Partial<DitherParameters>) => {
-      setParameters((prev) => ({ ...prev, ...updates }));
-    },
-    []
-  );
+  const updateParameters = useCallback((updates: Partial<DitherParameters>) => {
+    setParameters((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   return {
     uploadedImage,

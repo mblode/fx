@@ -1,9 +1,15 @@
 "use client";
 
+import { ImageIcon, Upload } from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImageIcon, Upload } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface ImageDropzoneProps {
@@ -11,12 +17,18 @@ interface ImageDropzoneProps {
   currentImage: File | null;
 }
 
-export function ImageDropzone({ onImageUpload, currentImage }: ImageDropzoneProps) {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles[0]) {
-      onImageUpload(acceptedFiles[0]);
-    }
-  }, [onImageUpload]);
+export function ImageDropzone({
+  onImageUpload,
+  currentImage,
+}: ImageDropzoneProps) {
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles[0]) {
+        onImageUpload(acceptedFiles[0]);
+      }
+    },
+    [onImageUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -37,22 +49,28 @@ export function ImageDropzone({ onImageUpload, currentImage }: ImageDropzoneProp
         <div
           {...getRootProps()}
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-            isDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary"
+            "cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors",
+            isDragActive
+              ? "border-primary bg-primary/5"
+              : "border-border hover:border-primary"
           )}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center gap-2">
             {isDragActive ? (
               <>
-                <Upload className="w-12 h-12 text-primary" />
-                <p className="text-sm text-primary font-medium">Drop image here</p>
+                <Upload className="h-12 w-12 text-primary" />
+                <p className="font-medium text-primary text-sm">
+                  Drop image here
+                </p>
               </>
             ) : (
               <>
-                <ImageIcon className="w-12 h-12 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {currentImage ? currentImage.name : "Drop image here or click to browse"}
+                <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                <p className="text-muted-foreground text-sm">
+                  {currentImage
+                    ? currentImage.name
+                    : "Drop image here or click to browse"}
                 </p>
               </>
             )}
