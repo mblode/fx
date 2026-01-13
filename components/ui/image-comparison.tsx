@@ -24,7 +24,9 @@ export function ImageComparison({
   const isDraggingRef = useRef(false);
 
   const onDragging = useCallback((e: PointerEvent) => {
-    if (!(sliderRef.current && isDraggingRef.current)) return;
+    if (!(sliderRef.current && isDraggingRef.current)) {
+      return;
+    }
     const rect = sliderRef.current.getBoundingClientRect();
     const newSliderPosition = ((e.clientX - rect.left) / rect.width) * 100;
     setSliderPosition(Math.max(0, Math.min(100, newSliderPosition)));
@@ -123,8 +125,10 @@ export function ImageComparison({
         {/* Slider Button */}
         <div className="relative z-10 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-md ring-1 ring-border">
           <svg
+            aria-label="Drag to compare images"
             fill="none"
             height={20}
+            role="img"
             viewBox="0 0 24 24"
             width={20}
             xmlns="http://www.w3.org/2000/svg"

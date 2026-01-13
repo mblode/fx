@@ -40,7 +40,9 @@ export default function DitherPage() {
   });
 
   const handleDownload = () => {
-    if (!ditheredImage) return;
+    if (!ditheredImage) {
+      return;
+    }
 
     // Generate filename from original with -dithered suffix
     let filename = "dithered-image.png";
@@ -60,12 +62,16 @@ export default function DitherPage() {
     canvas.height = ditheredImage.height;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     ctx.putImageData(ditheredImage, 0, 0);
 
     canvas.toBlob((blob) => {
-      if (!blob) return;
+      if (!blob) {
+        return;
+      }
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");

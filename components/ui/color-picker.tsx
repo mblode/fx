@@ -10,6 +10,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{0,6}$/;
+
 interface ColorPickerProps {
   id: string;
   label: string;
@@ -29,7 +31,7 @@ export function ColorPicker({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    if (/^#[0-9A-Fa-f]{0,6}$/.test(newValue)) {
+    if (HEX_COLOR_REGEX.test(newValue)) {
       onChange(newValue.toUpperCase());
     }
   };

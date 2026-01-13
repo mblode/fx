@@ -32,7 +32,7 @@ export const DEFAULT_NOISE_TEXTURE = NOISE_TEXTURES[1]; // 128×128
 /**
  * Load a noise texture from a data URL
  */
-export async function loadNoiseTexture(dataUrl: string): Promise<NoiseTexture> {
+export function loadNoiseTexture(dataUrl: string): Promise<NoiseTexture> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {

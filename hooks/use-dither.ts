@@ -87,7 +87,7 @@ export function useDither() {
     };
 
     processDither();
-  }, [uploadedImage, debouncedParams]);
+  }, [uploadedImage, debouncedParams, originalDimensions]);
 
   const updateParameters = useCallback((updates: Partial<DitherParameters>) => {
     setParameters((prev) => ({ ...prev, ...updates }));

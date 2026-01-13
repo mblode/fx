@@ -34,7 +34,9 @@ export function applyContrast(
   imageData: ImageData,
   contrast: number
 ): ImageData {
-  if (contrast === 1.0) return imageData;
+  if (contrast === 1.0) {
+    return imageData;
+  }
 
   const factor =
     (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));

@@ -19,7 +19,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 /**
  * Resize an image using Canvas API
  */
-function resizeImage(
+function _resizeImage(
   img: HTMLImageElement,
   maxWidth?: number,
   maxHeight?: number

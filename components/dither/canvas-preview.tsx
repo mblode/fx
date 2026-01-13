@@ -57,9 +57,11 @@ export function CanvasPreview({
       <div className="flex w-full max-w-2xl items-center justify-center">
         <div className="flex w-full flex-col items-center gap-4 rounded-lg border-2 border-border border-dashed p-12 text-center">
           <svg
+            aria-label="Image placeholder icon"
             className="text-muted-foreground"
             fill="none"
             height="64"
+            role="img"
             stroke="currentColor"
             strokeLinecap="round"
             strokeLinejoin="round"
