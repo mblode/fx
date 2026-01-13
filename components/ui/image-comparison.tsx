@@ -7,6 +7,10 @@ interface ImageComparisonProps {
   afterImage: string;
   beforeLabel?: string;
   afterLabel?: string;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
 }
 
 export function ImageComparison({
@@ -14,12 +18,13 @@ export function ImageComparison({
   afterImage,
   beforeLabel = "Original",
   afterLabel = "Dithered",
+  dimensions,
 }: ImageComparisonProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
-  const [dimensions, setDimensions] = useState<{
+  const [measuredDimensions, setMeasuredDimensions] = useState<{
     width: number;
     height: number;
-  } | null>(null);
+  } | null>(dimensions ?? null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -57,27 +62,34 @@ export function ImageComparison({
 
   // Load image dimensions
   useEffect(() => {
+    if (dimensions) {
+      setMeasuredDimensions(dimensions);
+      return;
+    }
+
     const img = new Image();
     img.onload = () => {
-      setDimensions({ width: img.width, height: img.height });
+      setMeasuredDimensions({ width: img.width, height: img.height });
     };
     img.src = afterImage;
-  }, [afterImage]);
+  }, [afterImage, dimensions]);
 
-  if (!dimensions) {
+  if (!measuredDimensions) {
     return null;
   }
 
   return (
     <div
-      className="relative max-h-[90vh] w-full max-w-full overflow-hidden rounded-lg border border-border shadow-sm"
+      className="relative max-h-[90vh] w-full max-w-full overflow-hidden rounded-lg shadow-sm"
       ref={sliderRef}
       style={{
-        aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+        aspectRatio: `${measuredDimensions.width} / ${measuredDimensions.height}`,
       }}
     >
       {/* After Image (Right side - background) */}
       <div className="absolute inset-0">
+        {/* biome-ignore lint/correctness/useImageSize: Dynamic canvas-generated data URL, sized by CSS container */}
+        {/* biome-ignore lint/performance/noImgElement: Client-side generated data URL, cannot use Next Image */}
         <img
           alt={afterLabel}
           className="size-full object-contain"
@@ -92,6 +104,8 @@ export function ImageComparison({
           clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0% 100%)`,
         }}
       >
+        {/* biome-ignore lint/correctness/useImageSize: Dynamic canvas-generated data URL, sized by CSS container */}
+        {/* biome-ignore lint/performance/noImgElement: Client-side generated data URL, cannot use Next Image */}
         <img
           alt={beforeLabel}
           className="size-full object-contain"

@@ -91,7 +91,7 @@ export default function DitherPage() {
         parameters={parameters}
         uploadedImage={uploadedImage}
       />
-      <SidebarInset className="flex h-full flex-col">
+      <SidebarInset className="flex flex-col">
         {/* Mobile header with menu trigger */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
           <SidebarTrigger />

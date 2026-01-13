@@ -17,6 +17,9 @@ export function CanvasPreview({
 }: CanvasPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ditheredImageUrl, setDitheredImageUrl] = useState<string | null>(null);
+  const comparisonDimensions = ditheredImage
+    ? { width: ditheredImage.width, height: ditheredImage.height }
+    : null;
 
   // Convert uploaded image to blob URL
   const originalImageUrl = useMemo(() => {
@@ -94,7 +97,7 @@ export function CanvasPreview({
             afterLabel="Dithered"
             beforeImage={originalImageUrl}
             beforeLabel="Original"
-            key={ditheredImageUrl}
+            dimensions={comparisonDimensions ?? undefined}
           />
           {isProcessing && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-[2px]">

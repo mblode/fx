@@ -1,6 +1,8 @@
 "use client";
 
+// biome-ignore lint/performance/noNamespaceImport: Radix UI requires namespace imports
 import * as SliderPrimitive from "@radix-ui/react-slider";
+// biome-ignore lint/performance/noNamespaceImport: React namespace import needed for ref types
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noNamespaceImport: React namespace import needed for ref types
 import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;
