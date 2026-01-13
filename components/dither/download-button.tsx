@@ -5,25 +5,42 @@ import { Button } from "@/components/ui/button";
 
 interface DownloadButtonProps {
   imageData: ImageData;
-  filename?: string;
+  originalFilename?: string;
 }
 
 export function DownloadButton({
   imageData,
-  filename = "dithered-image.png",
+  originalFilename,
 }: DownloadButtonProps) {
   const handleDownload = () => {
+    // Generate filename from original with -dithered suffix
+    let filename = "dithered-image.png";
+    if (originalFilename) {
+      const lastDotIndex = originalFilename.lastIndexOf(".");
+      if (lastDotIndex > 0) {
+        const nameWithoutExt = originalFilename.substring(0, lastDotIndex);
+        const ext = originalFilename.substring(lastDotIndex);
+        filename = `${nameWithoutExt}-dithered${ext}`;
+      } else {
+        filename = `${originalFilename}-dithered.png`;
+      }
+    }
+
     const canvas = document.createElement("canvas");
     canvas.width = imageData.width;
     canvas.height = imageData.height;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     ctx.putImageData(imageData, 0, 0);
 
     canvas.toBlob((blob) => {
-      if (!blob) return;
+      if (!blob) {
+        return;
+      }
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -38,7 +55,7 @@ export function DownloadButton({
   return (
     <Button className="w-full" onClick={handleDownload} size="lg">
       <Download className="mr-2 h-4 w-4" />
-      Download Dithered Image
+      Download dithered image
     </Button>
   );
 }

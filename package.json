@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check-types": "tsc --noEmit",
     "prepare": "husky"
   },
   "dependencies": {
@@ -47,6 +50,7 @@
     "next": "16.1.1",
     "next-themes": "^0.4.6",
     "react": "19.2.3",
+    "react-colorful": "^5.6.1",
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "react-dropzone": "^14.3.8",

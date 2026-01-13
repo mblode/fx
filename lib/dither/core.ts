@@ -37,9 +37,13 @@ function resizeImage(
     height = maxHeight;
   }
 
+  // CRITICAL FIX: Floor dimensions before use to prevent fractional pixels
+  const flooredWidth = Math.floor(width);
+  const flooredHeight = Math.floor(height);
+
   const canvas = document.createElement("canvas");
-  canvas.width = Math.floor(width);
-  canvas.height = Math.floor(height);
+  canvas.width = flooredWidth;
+  canvas.height = flooredHeight;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -48,9 +52,9 @@ function resizeImage(
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, 0, 0, width, height);
+  ctx.drawImage(img, 0, 0, flooredWidth, flooredHeight);
 
-  return { canvas, width, height };
+  return { canvas, width: flooredWidth, height: flooredHeight };
 }
 
 /**
@@ -68,27 +72,40 @@ export async function applyDither(
   // Load image
   const img = await loadImage(imageFile);
 
-  // Resize if needed
-  let canvas = document.createElement("canvas");
-  let ctx = canvas.getContext("2d");
+  // Calculate target dimensions before pixelation
+  let targetWidth = img.width;
+  let targetHeight = img.height;
+
+  if (
+    params.maxWidth !== null &&
+    params.maxWidth !== undefined &&
+    img.width > params.maxWidth
+  ) {
+    targetHeight = Math.floor((img.height * params.maxWidth) / img.width);
+    targetWidth = params.maxWidth;
+  }
+
+  // Calculate dimensions for dithering (downscaled by pixelSize)
+  const pixelSize = Math.floor(params.pixelSize);
+  const ditherWidth = Math.floor(targetWidth / pixelSize);
+  const ditherHeight = Math.floor(targetHeight / pixelSize);
+
+  // Create canvas for downscaled image (this is what we'll dither)
+  const canvas = document.createElement("canvas");
+  canvas.width = ditherWidth;
+  canvas.height = ditherHeight;
+
+  const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("Could not get canvas context");
   }
 
-  let width = img.width;
-  let height = img.height;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, ditherWidth, ditherHeight);
 
-  if (params.width || params.height) {
-    const resized = resizeImage(img, params.width, params.height);
-    canvas = resized.canvas;
-    ctx = canvas.getContext("2d")!;
-    width = resized.width;
-    height = resized.height;
-  } else {
-    canvas.width = width;
-    canvas.height = height;
-    ctx.drawImage(img, 0, 0);
-  }
+  const width = ditherWidth;
+  const height = ditherHeight;
 
   // Get image data
   let imageData = ctx.getImageData(0, 0, width, height);
@@ -134,6 +151,33 @@ export async function applyDither(
       }
       outputData[outputIdx + 3] = 255; // Alpha
     }
+  }
+
+  // If pixelSize > 1, upscale using nearest-neighbor to create blocky pixels
+  if (pixelSize > 1) {
+    const upscaledWidth = targetWidth;
+    const upscaledHeight = targetHeight;
+    const upscaledData = new Uint8ClampedArray(
+      upscaledWidth * upscaledHeight * 4
+    );
+
+    // Nearest-neighbor upscaling
+    for (let y = 0; y < upscaledHeight; y++) {
+      for (let x = 0; x < upscaledWidth; x++) {
+        // Map to source pixel
+        const srcX = Math.floor(x / pixelSize);
+        const srcY = Math.floor(y / pixelSize);
+        const srcIdx = (srcY * width + srcX) * 4;
+        const dstIdx = (y * upscaledWidth + x) * 4;
+
+        upscaledData[dstIdx] = outputData[srcIdx];
+        upscaledData[dstIdx + 1] = outputData[srcIdx + 1];
+        upscaledData[dstIdx + 2] = outputData[srcIdx + 2];
+        upscaledData[dstIdx + 3] = 255;
+      }
+    }
+
+    return new ImageData(upscaledData, upscaledWidth, upscaledHeight);
   }
 
   return new ImageData(outputData, width, height);

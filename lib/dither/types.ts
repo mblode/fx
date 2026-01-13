@@ -1,10 +1,10 @@
 export interface DitherParameters {
   foreground: string; // Hex color
   background: string; // Hex color
-  contrast: number; // 0.5 - 2.0
-  noiseSize: number; // 64, 128, 256
-  width?: number; // Optional resize
-  height?: number; // Optional resize
+  contrast: number; // 0.0 - 3.0
+  noiseSize: number; // 64, 128, 256 (internal, not exposed in UI)
+  maxWidth?: number | null; // Max width in pixels, null = original size
+  pixelSize: number; // 1 = no pixelation, 2 = 2x2 blocks, 4 = 4x4 blocks, etc.
 }
 
 export interface NoiseTexture {

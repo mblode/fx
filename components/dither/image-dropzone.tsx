@@ -39,17 +39,17 @@ export function ImageDropzone({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Upload Image</CardTitle>
-        <CardDescription>
+      <CardHeader className="p-3">
+        <CardTitle className="text-sm">Upload Image</CardTitle>
+        <CardDescription className="text-xs">
           Drag and drop or click to select an image
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 pt-0">
         <div
           {...getRootProps()}
           className={cn(
-            "cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors",
+            "cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors",
             isDragActive
               ? "border-primary bg-primary/5"
               : "border-border hover:border-primary"
@@ -59,15 +59,15 @@ export function ImageDropzone({
           <div className="flex flex-col items-center gap-2">
             {isDragActive ? (
               <>
-                <Upload className="h-12 w-12 text-primary" />
+                <Upload className="h-10 w-10 text-primary" />
                 <p className="font-medium text-primary text-sm">
                   Drop image here
                 </p>
               </>
             ) : (
               <>
-                <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground text-sm">
+                <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                <p className="max-w-full truncate text-muted-foreground text-xs">
                   {currentImage
                     ? currentImage.name
                     : "Drop image here or click to browse"}
