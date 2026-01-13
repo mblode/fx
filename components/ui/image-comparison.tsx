@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowExpandHorIcon } from "@fingertip/icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ImageComparisonProps {
@@ -92,7 +93,7 @@ export function ImageComparison({
         {/* biome-ignore lint/performance/noImgElement: Client-side generated data URL, cannot use Next Image */}
         <img
           alt={afterLabel}
-          className="size-full object-contain"
+          className="size-full object-contain [image-rendering:pixelated]"
           src={afterImage}
         />
       </div>
@@ -138,23 +139,11 @@ export function ImageComparison({
       >
         {/* Slider Button */}
         <div className="relative z-10 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-md ring-1 ring-border">
-          <svg
+          <ArrowExpandHorIcon
             aria-label="Drag to compare images"
-            fill="none"
-            height={20}
+            className="h-5 w-5"
             role="img"
-            viewBox="0 0 24 24"
-            width={20}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M18 8L22 12M22 12L18 16M22 12H2M6 8L2 12M2 12L6 16"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-            />
-          </svg>
+          />
         </div>
 
         {/* Vertical Line */}

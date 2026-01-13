@@ -1,5 +1,6 @@
 "use client";
 
+import { Images1Icon } from "@fingertip/icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImageComparison } from "@/components/ui/image-comparison";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,12 +9,14 @@ interface CanvasPreviewProps {
   uploadedImage: File | null;
   ditheredImage: ImageData | null;
   isProcessing: boolean;
+  onBrowse?: () => void;
 }
 
 export function CanvasPreview({
   uploadedImage,
   ditheredImage,
   isProcessing,
+  onBrowse,
 }: CanvasPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ditheredImageUrl, setDitheredImageUrl] = useState<string | null>(null);
@@ -57,32 +60,35 @@ export function CanvasPreview({
 
   if (!uploadedImage) {
     return (
-      <div className="flex w-full max-w-2xl items-center justify-center">
-        <div className="flex w-full flex-col items-center gap-4 rounded-lg border-2 border-border border-dashed p-12 text-center">
-          <svg
-            aria-label="Image placeholder icon"
-            className="text-muted-foreground"
-            fill="none"
-            height="64"
-            role="img"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            width="64"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
-            <circle cx="9" cy="9" r="2" />
-            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-          </svg>
+      <div className="flex w-full max-w-2xl cursor-pointer items-center justify-center">
+        <div className="flex w-full flex-col items-center gap-4 rounded-3xl border-2 border-border border-dashed p-12 text-center">
+          <Images1Icon
+            aria-hidden="true"
+            className="h-16 w-16 text-muted-foreground"
+          />
           <div className="flex flex-col gap-1">
-            <p className="font-medium text-foreground">Drop an image here</p>
-            <p className="text-muted-foreground text-sm">
+            <p
+              className="font-medium text-foreground"
+              style={{ textWrap: "balance" }}
+            >
+              Drop an image here
+            </p>
+            <p
+              className="text-muted-foreground text-sm leading-[1.6]"
+              style={{ textWrap: "pretty" }}
+            >
               or drag and drop anywhere on this area
             </p>
           </div>
+          {onBrowse && (
+            <button
+              className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 font-medium text-sm shadow-xs transition-[color,box-shadow] hover:bg-accent hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              onClick={onBrowse}
+              type="button"
+            >
+              Browse
+            </button>
+          )}
         </div>
       </div>
     );
@@ -92,17 +98,22 @@ export function CanvasPreview({
     <div className="relative flex w-full items-center justify-center">
       {originalImageUrl && ditheredImageUrl ? (
         <>
-          <ImageComparison
-            afterImage={ditheredImageUrl}
-            afterLabel="Dithered"
-            beforeImage={originalImageUrl}
-            beforeLabel="Original"
-            dimensions={comparisonDimensions ?? undefined}
-          />
+          <section
+            aria-label="Image comparison showing original and dithered versions"
+            className="data-motion-scale fade-in-0 zoom-in-95 block w-full max-w-full animate-in duration-250 [animation-timing-function:var(--ease-enter)]"
+          >
+            <ImageComparison
+              afterImage={ditheredImageUrl}
+              afterLabel="Dithered"
+              beforeImage={originalImageUrl}
+              beforeLabel="Original"
+              dimensions={comparisonDimensions ?? undefined}
+            />
+          </section>
           {isProcessing && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-[2px]">
-              <div className="rounded-full bg-background px-3 py-1.5 font-medium text-sm shadow-sm ring-1 ring-border">
-                Processing...
+            <div className="fade-in-0 pointer-events-none absolute inset-0 flex animate-in items-center justify-center rounded-lg bg-background/80 duration-200">
+              <div className="data-motion-scale fade-in-0 zoom-in-95 animate-in rounded-full bg-background px-3 py-1.5 font-medium text-sm shadow-sm ring-1 ring-border duration-200 [animation-timing-function:var(--ease-enter)]">
+                Processing&hellip;
               </div>
             </div>
           )}

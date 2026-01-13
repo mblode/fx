@@ -44,7 +44,7 @@ export function ColorPicker({
           <PopoverTrigger asChild>
             <button
               aria-label={`Pick ${label.toLowerCase()}`}
-              className="h-10 w-10 shrink-0 rounded-md border border-input disabled:cursor-not-allowed disabled:opacity-50"
+              className="touch-action-manipulation h-10 w-10 shrink-0 rounded-md border border-input shadow-xs disabled:cursor-not-allowed disabled:opacity-50"
               disabled={disabled}
               style={{ backgroundColor: value }}
               type="button"
@@ -55,12 +55,14 @@ export function ColorPicker({
           </PopoverContent>
         </Popover>
         <Input
+          autoComplete="off"
           className="font-mono"
           disabled={disabled}
           id={id}
           maxLength={7}
           onChange={handleInputChange}
           placeholder="#000000"
+          spellCheck={false}
           type="text"
           value={value}
         />

@@ -40,7 +40,7 @@ function Slider({
     >
       <SliderPrimitive.Track
         className={cn(
-          "relative grow overflow-hidden rounded-full bg-foreground/20 data-[orientation=horizontal]:h-1.5 data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-1.5"
+          "relative grow overflow-hidden rounded-full bg-foreground/20 data-[orientation=horizontal]:h-2 data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-2"
         )}
         data-slot="slider-track"
       >
@@ -53,7 +53,7 @@ function Slider({
       </SliderPrimitive.Track>
       {_values.map((val) => (
         <SliderPrimitive.Thumb
-          className="block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
+          className="data-motion-scale block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow,transform] duration-200 [transition-timing-function:var(--ease-enter)] hover:scale-110 hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           data-slot="slider-thumb"
           key={val}
         />

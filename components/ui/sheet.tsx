@@ -1,8 +1,8 @@
 "use client";
 
+import { XIcon } from "@fingertip/icons";
 // biome-ignore lint/performance/noNamespaceImport: Radix UI requires namespace imports
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -58,7 +58,7 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Content
         className={cn(
-          "fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          "data-motion-scale fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition [transition-timing-function:var(--ease-enter)] data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:duration-200 data-[state=open]:duration-250",
           side === "right" &&
             "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
           side === "left" &&

@@ -1,10 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { DitherParameters } from "@/lib/dither/types";
+
+const SLIDER_DEBOUNCE_MS = 150;
 
 interface ControlsPanelProps {
   parameters: DitherParameters;
@@ -19,6 +23,44 @@ export function ControlsPanel({
   originalDimensions,
   disabled,
 }: ControlsPanelProps) {
+  const [localContrast, setLocalContrast] = useState(parameters.contrast);
+  const [localBrightness, setLocalBrightness] = useState(parameters.brightness);
+  const [localPixelSize, setLocalPixelSize] = useState(parameters.pixelSize);
+
+  useEffect(() => {
+    setLocalContrast(parameters.contrast);
+  }, [parameters.contrast]);
+
+  useEffect(() => {
+    setLocalBrightness(parameters.brightness);
+  }, [parameters.brightness]);
+
+  const debouncedContrast = useDebounce(localContrast, SLIDER_DEBOUNCE_MS);
+  const debouncedBrightness = useDebounce(localBrightness, SLIDER_DEBOUNCE_MS);
+  const debouncedPixelSize = useDebounce(localPixelSize, SLIDER_DEBOUNCE_MS);
+
+  useEffect(() => {
+    if (debouncedContrast !== parameters.contrast) {
+      onParametersChange({ contrast: debouncedContrast });
+    }
+  }, [debouncedContrast, onParametersChange, parameters.contrast]);
+
+  useEffect(() => {
+    if (debouncedBrightness !== parameters.brightness) {
+      onParametersChange({ brightness: debouncedBrightness });
+    }
+  }, [debouncedBrightness, onParametersChange, parameters.brightness]);
+
+  useEffect(() => {
+    setLocalPixelSize(parameters.pixelSize);
+  }, [parameters.pixelSize]);
+
+  useEffect(() => {
+    if (debouncedPixelSize !== parameters.pixelSize) {
+      onParametersChange({ pixelSize: debouncedPixelSize });
+    }
+  }, [debouncedPixelSize, onParametersChange, parameters.pixelSize]);
+
   // Calculate output dimensions based on maxWidth
   let outputWidth: number | null = null;
   if (originalDimensions) {
@@ -60,37 +102,64 @@ export function ControlsPanel({
         />
 
         <div className="space-y-2">
-          <Label htmlFor="contrast">
-            Contrast: {Math.round(parameters.contrast * 50)}%
+          <Label htmlFor="brightness">
+            Brightness: {Math.round(localBrightness)}
           </Label>
-          <Slider
-            disabled={disabled}
-            id="contrast"
-            max={2.0}
-            min={0.0}
-            onValueChange={([value]) => onParametersChange({ contrast: value })}
-            step={0.02}
-            value={[parameters.contrast]}
-          />
-          <p className="text-muted-foreground text-xs">
-            50% = original, lower = less contrast, higher = more contrast
-          </p>
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground/40"
+            />
+            <Slider
+              className="relative z-10"
+              disabled={disabled}
+              id="brightness"
+              max={100}
+              min={-100}
+              onValueChange={([value]) => setLocalBrightness(value)}
+              step={5}
+              value={[localBrightness]}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pixelSize">Pixelation: {parameters.pixelSize}×</Label>
+          <Label htmlFor="contrast">
+            Contrast: {Math.round(localContrast)}
+          </Label>
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground/40"
+            />
+            <Slider
+              className="relative z-10"
+              disabled={disabled}
+              id="contrast"
+              max={100}
+              min={-100}
+              onValueChange={([value]) => setLocalContrast(value)}
+              step={5}
+              value={[localContrast]}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="pixelSize">Pixelation: {localPixelSize}×</Label>
           <Slider
             disabled={disabled}
             id="pixelSize"
             max={16}
             min={1}
-            onValueChange={([value]) =>
-              onParametersChange({ pixelSize: value })
-            }
+            onValueChange={([value]) => setLocalPixelSize(value)}
             step={1}
-            value={[parameters.pixelSize]}
+            value={[localPixelSize]}
           />
-          <p className="text-muted-foreground text-xs">
+          <p
+            className="text-muted-foreground text-sm leading-[1.6]"
+            style={{ textWrap: "pretty" }}
+          >
             1 = no pixelation, higher = blockier pixels
           </p>
         </div>
@@ -100,7 +169,7 @@ export function ControlsPanel({
             <Label htmlFor="maxWidth">Maximum width</Label>
             {originalDimensions && outputWidth !== originalDimensions.width && (
               <button
-                className="text-muted-foreground text-xs hover:text-foreground"
+                className="text-muted-foreground text-xs underline underline-offset-2 hover:text-foreground"
                 onClick={() => onParametersChange({ maxWidth: null })}
                 type="button"
               >
@@ -111,6 +180,7 @@ export function ControlsPanel({
           <Input
             disabled={disabled}
             id="maxWidth"
+            inputMode="numeric"
             max={4096}
             min={256}
             onChange={(e) => {
@@ -134,10 +204,13 @@ export function ControlsPanel({
             }
           />
           {originalDimensions && (
-            <p className="text-muted-foreground text-xs">
+            <p
+              className="text-muted-foreground text-sm leading-[1.6]"
+              style={{ textWrap: "pretty" }}
+            >
               {outputWidth === originalDimensions.width
-                ? `Using original size: ${originalDimensions.width} × ${originalDimensions.height} px`
-                : `Resizing from ${originalDimensions.width} × ${originalDimensions.height} to ${outputWidth} × ${outputHeight} px`}
+                ? `Using original size: ${originalDimensions.width}\u00A0×\u00A0${originalDimensions.height}\u00A0px`
+                : `Resizing from ${originalDimensions.width}\u00A0×\u00A0${originalDimensions.height} to ${outputWidth}\u00A0×\u00A0${outputHeight}\u00A0px`}
             </p>
           )}
         </div>

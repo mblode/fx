@@ -1,5 +1,5 @@
 import type { DitherParameters, NoiseTexture } from "./types";
-import { applyContrast, hexToRgb, wrap } from "./utils";
+import { applyBrightness, applyContrast, hexToRgb, wrap } from "./utils";
 
 /**
  * Load an image from a File object
@@ -87,8 +87,8 @@ export async function applyDither(
 
   // Calculate dimensions for dithering (downscaled by pixelSize)
   const pixelSize = Math.floor(params.pixelSize);
-  const ditherWidth = Math.floor(targetWidth / pixelSize);
-  const ditherHeight = Math.floor(targetHeight / pixelSize);
+  const ditherWidth = Math.max(1, Math.floor(targetWidth / pixelSize));
+  const ditherHeight = Math.max(1, Math.floor(targetHeight / pixelSize));
 
   // Create canvas for downscaled image (this is what we'll dither)
   const canvas = document.createElement("canvas");
@@ -110,8 +110,12 @@ export async function applyDither(
   // Get image data
   let imageData = ctx.getImageData(0, 0, width, height);
 
-  // Apply contrast
-  if (params.contrast !== 1.0) {
+  // Apply tone adjustments
+  if (params.brightness !== 0) {
+    imageData = applyBrightness(imageData, params.brightness);
+  }
+
+  if (params.contrast !== 0) {
     imageData = applyContrast(imageData, params.contrast);
   }
 
@@ -165,8 +169,8 @@ export async function applyDither(
     for (let y = 0; y < upscaledHeight; y++) {
       for (let x = 0; x < upscaledWidth; x++) {
         // Map to source pixel
-        const srcX = Math.floor(x / pixelSize);
-        const srcY = Math.floor(y / pixelSize);
+        const srcX = Math.min(width - 1, Math.floor(x / pixelSize));
+        const srcY = Math.min(height - 1, Math.floor(y / pixelSize));
         const srcIdx = (srcY * width + srcX) * 4;
         const dstIdx = (y * upscaledWidth + x) * 4;
 

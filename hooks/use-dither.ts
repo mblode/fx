@@ -9,7 +9,8 @@ import { useDebounce } from "./use-debounce";
 const DEFAULT_PARAMETERS: DitherParameters = {
   foreground: "#000000",
   background: "#ffffff",
-  contrast: 1.0,
+  contrast: 0,
+  brightness: 0,
   noiseSize: 256,
   maxWidth: null,
   pixelSize: 1,

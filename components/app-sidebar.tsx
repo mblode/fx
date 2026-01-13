@@ -25,9 +25,14 @@ export function AppSidebar({
 }: AppSidebarProps) {
   return (
     <Sidebar variant="inset">
-      <SidebarHeader className="border-b px-3 py-3">
-        <h1 className="font-bold text-xl tracking-tight">Blue noise dither</h1>
-        <p className="text-muted-foreground text-sm">
+      <SidebarHeader className="px-2">
+        <h1
+          className="font-bold text-xl tracking-tight md:text-2xl"
+          style={{ textWrap: "balance" }}
+        >
+          Blue noise dither
+        </h1>
+        <p className="text-sm leading-[1.6]" style={{ textWrap: "pretty" }}>
           Apply high-quality blue noise dithering to your images
         </p>
       </SidebarHeader>
