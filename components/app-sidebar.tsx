@@ -30,7 +30,7 @@ export function AppSidebar({
           className="font-bold text-xl tracking-tight md:text-2xl"
           style={{ textWrap: "balance" }}
         >
-          Blue noise dither
+          Blue noise
         </h1>
         <p className="text-sm leading-[1.6]" style={{ textWrap: "pretty" }}>
           Apply high-quality blue noise dithering to your images
