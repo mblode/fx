@@ -7,23 +7,31 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+interface SliderProps
+  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
+  showOrigin?: boolean;
+  showValue?: boolean;
+}
+
 function Slider({
   className,
   defaultValue,
   value,
   min = 0,
   max = 100,
+  showOrigin,
+  showValue,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
-  const _values = React.useMemo(() => {
-    if (Array.isArray(value)) {
-      return value;
-    }
-    if (Array.isArray(defaultValue)) {
-      return defaultValue;
-    }
-    return [min, max];
-  }, [value, defaultValue, min, max]);
+}: SliderProps) {
+  const values = React.useMemo(
+    () =>
+      Array.isArray(value)
+        ? value
+        : Array.isArray(defaultValue)
+          ? defaultValue
+          : [min, max],
+    [value, defaultValue, min, max]
+  );
 
   return (
     <SliderPrimitive.Root
@@ -40,7 +48,7 @@ function Slider({
     >
       <SliderPrimitive.Track
         className={cn(
-          "relative grow overflow-hidden rounded-full bg-foreground/20 data-[orientation=horizontal]:h-2 data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-2"
+          "relative grow overflow-hidden rounded-full bg-muted data-[orientation=horizontal]:h-3 data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-3"
         )}
         data-slot="slider-track"
       >
@@ -50,13 +58,22 @@ function Slider({
           )}
           data-slot="slider-range"
         />
+        {showOrigin && (
+          <div className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-foreground/30" />
+        )}
       </SliderPrimitive.Track>
-      {_values.map((val) => (
+      {Array.from({ length: values.length }, (_, index) => (
         <SliderPrimitive.Thumb
-          className="data-motion-scale block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow,transform] duration-200 [transition-timing-function:var(--ease-enter)] hover:scale-110 hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          className="block size-7 shrink-0 rounded-full border border-border bg-white shadow-lg ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus:border-ring focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
           data-slot="slider-thumb"
-          key={val}
-        />
+          key={index}
+        >
+          {showValue && (
+            <div className="absolute top-9 left-1/2 h-8 w-fit -translate-x-1/2 text-center text-foreground text-xs">
+              {value}
+            </div>
+          )}
+        </SliderPrimitive.Thumb>
       ))}
     </SliderPrimitive.Root>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { XIcon } from "@fingertip/icons";
+import { CrossLargeIcon } from "@fingertip/icons";
 // biome-ignore lint/performance/noNamespaceImport: Radix UI requires namespace imports
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import type * as React from "react";
@@ -74,7 +74,7 @@ function SheetContent({
       >
         {children}
         <SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-          <XIcon className="size-4" />
+          <CrossLargeIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>

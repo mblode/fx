@@ -24,8 +24,8 @@ export function AppSidebar({
   onParametersChange,
 }: AppSidebarProps) {
   return (
-    <Sidebar variant="inset">
-      <SidebarHeader className="px-2">
+    <Sidebar mobileVariant="none" variant="inset">
+      <SidebarHeader className="hidden px-2 md:flex">
         <h1
           className="font-bold text-xl tracking-tight md:text-2xl"
           style={{ textWrap: "balance" }}

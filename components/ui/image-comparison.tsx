@@ -28,18 +28,49 @@ export function ImageComparison({
   } | null>(dimensions ?? null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const latestClientXRef = useRef<number | null>(null);
 
-  const onDragging = useCallback((e: PointerEvent) => {
-    if (!(sliderRef.current && isDraggingRef.current)) {
+  const updateSliderPosition = useCallback((clientX: number) => {
+    if (!sliderRef.current) {
       return;
     }
     const rect = sliderRef.current.getBoundingClientRect();
-    const newSliderPosition = ((e.clientX - rect.left) / rect.width) * 100;
+    const newSliderPosition = ((clientX - rect.left) / rect.width) * 100;
     setSliderPosition(Math.max(0, Math.min(100, newSliderPosition)));
   }, []);
 
+  const onDragging = useCallback(
+    (e: PointerEvent) => {
+      if (!(sliderRef.current && isDraggingRef.current)) {
+        return;
+      }
+
+      latestClientXRef.current = e.clientX;
+
+      if (rafRef.current !== null) {
+        return;
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const latest = latestClientXRef.current;
+        if (latest === null || !isDraggingRef.current) {
+          return;
+        }
+        updateSliderPosition(latest);
+      });
+    },
+    [updateSliderPosition]
+  );
+
   const stopDragging = useCallback(() => {
     isDraggingRef.current = false;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    latestClientXRef.current = null;
     document.removeEventListener("pointermove", onDragging);
     document.removeEventListener("pointerup", stopDragging);
   }, [onDragging]);
@@ -48,14 +79,19 @@ export function ImageComparison({
     (e: React.PointerEvent) => {
       e.preventDefault();
       isDraggingRef.current = true;
+      updateSliderPosition(e.clientX);
       document.addEventListener("pointermove", onDragging);
       document.addEventListener("pointerup", stopDragging);
     },
-    [onDragging, stopDragging]
+    [onDragging, stopDragging, updateSliderPosition]
   );
 
   useEffect(() => {
     return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       document.removeEventListener("pointermove", onDragging);
       document.removeEventListener("pointerup", stopDragging);
     };
@@ -138,7 +174,7 @@ export function ImageComparison({
         style={{ left: `${sliderPosition}%`, touchAction: "none" }}
       >
         {/* Slider Button */}
-        <div className="relative z-10 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-md ring-1 ring-border">
+        <div className="relative z-10 flex size-11 items-center justify-center rounded-full bg-background text-foreground shadow-md ring-1 ring-border md:size-9">
           <ArrowExpandHorIcon
             aria-label="Drag to compare images"
             className="h-5 w-5"

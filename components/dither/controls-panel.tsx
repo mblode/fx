@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { useDebounce } from "@/hooks/use-debounce";
 import type { DitherParameters } from "@/lib/dither/types";
-
-const SLIDER_DEBOUNCE_MS = 150;
 
 interface ControlsPanelProps {
   parameters: DitherParameters;
@@ -23,43 +20,18 @@ export function ControlsPanel({
   originalDimensions,
   disabled,
 }: ControlsPanelProps) {
-  const [localContrast, setLocalContrast] = useState(parameters.contrast);
-  const [localBrightness, setLocalBrightness] = useState(parameters.brightness);
-  const [localPixelSize, setLocalPixelSize] = useState(parameters.pixelSize);
-
-  useEffect(() => {
-    setLocalContrast(parameters.contrast);
-  }, [parameters.contrast]);
-
-  useEffect(() => {
-    setLocalBrightness(parameters.brightness);
-  }, [parameters.brightness]);
-
-  const debouncedContrast = useDebounce(localContrast, SLIDER_DEBOUNCE_MS);
-  const debouncedBrightness = useDebounce(localBrightness, SLIDER_DEBOUNCE_MS);
-  const debouncedPixelSize = useDebounce(localPixelSize, SLIDER_DEBOUNCE_MS);
-
-  useEffect(() => {
-    if (debouncedContrast !== parameters.contrast) {
-      onParametersChange({ contrast: debouncedContrast });
-    }
-  }, [debouncedContrast, onParametersChange, parameters.contrast]);
-
-  useEffect(() => {
-    if (debouncedBrightness !== parameters.brightness) {
-      onParametersChange({ brightness: debouncedBrightness });
-    }
-  }, [debouncedBrightness, onParametersChange, parameters.brightness]);
-
-  useEffect(() => {
-    setLocalPixelSize(parameters.pixelSize);
-  }, [parameters.pixelSize]);
-
-  useEffect(() => {
-    if (debouncedPixelSize !== parameters.pixelSize) {
-      onParametersChange({ pixelSize: debouncedPixelSize });
-    }
-  }, [debouncedPixelSize, onParametersChange, parameters.pixelSize]);
+  const brightnessValue = useMemo(
+    () => [parameters.brightness],
+    [parameters.brightness]
+  );
+  const contrastValue = useMemo(
+    () => [parameters.contrast],
+    [parameters.contrast]
+  );
+  const pixelSizeValue = useMemo(
+    () => [parameters.pixelSize],
+    [parameters.pixelSize]
+  );
 
   // Calculate output dimensions based on maxWidth
   let outputWidth: number | null = null;
@@ -103,58 +75,50 @@ export function ControlsPanel({
 
         <div className="space-y-2">
           <Label htmlFor="brightness">
-            Brightness: {Math.round(localBrightness)}
+            Brightness: {Math.round(parameters.brightness)}
           </Label>
-          <div className="relative">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground/40"
-            />
-            <Slider
-              className="relative z-10"
-              disabled={disabled}
-              id="brightness"
-              max={100}
-              min={-100}
-              onValueChange={([value]) => setLocalBrightness(value)}
-              step={5}
-              value={[localBrightness]}
-            />
-          </div>
+          <Slider
+            disabled={disabled}
+            id="brightness"
+            max={100}
+            min={-100}
+            onValueChange={([value]) =>
+              onParametersChange({ brightness: value })
+            }
+            showOrigin
+            step={5}
+            value={brightnessValue}
+          />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="contrast">
-            Contrast: {Math.round(localContrast)}
+            Contrast: {Math.round(parameters.contrast)}
           </Label>
-          <div className="relative">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground/40"
-            />
-            <Slider
-              className="relative z-10"
-              disabled={disabled}
-              id="contrast"
-              max={100}
-              min={-100}
-              onValueChange={([value]) => setLocalContrast(value)}
-              step={5}
-              value={[localContrast]}
-            />
-          </div>
+          <Slider
+            disabled={disabled}
+            id="contrast"
+            max={100}
+            min={-100}
+            onValueChange={([value]) => onParametersChange({ contrast: value })}
+            showOrigin
+            step={5}
+            value={contrastValue}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pixelSize">Pixelation: {localPixelSize}×</Label>
+          <Label htmlFor="pixelSize">Pixelation: {parameters.pixelSize}×</Label>
           <Slider
             disabled={disabled}
             id="pixelSize"
             max={16}
             min={1}
-            onValueChange={([value]) => setLocalPixelSize(value)}
+            onValueChange={([value]) =>
+              onParametersChange({ pixelSize: value })
+            }
             step={1}
-            value={[localPixelSize]}
+            value={pixelSizeValue}
           />
           <p
             className="text-muted-foreground text-sm leading-[1.6]"

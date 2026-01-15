@@ -1,28 +1,26 @@
 "use client";
 
 import { Images1Icon } from "@fingertip/icons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { ImageComparison } from "@/components/ui/image-comparison";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CanvasPreviewProps {
   uploadedImage: File | null;
-  ditheredImage: ImageData | null;
+  ditheredImageUrl: string | null;
+  ditheredDimensions: { width: number; height: number } | null;
   isProcessing: boolean;
   onBrowse?: () => void;
 }
 
 export function CanvasPreview({
   uploadedImage,
-  ditheredImage,
+  ditheredImageUrl,
+  ditheredDimensions,
   isProcessing,
   onBrowse,
 }: CanvasPreviewProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ditheredImageUrl, setDitheredImageUrl] = useState<string | null>(null);
-  const comparisonDimensions = ditheredImage
-    ? { width: ditheredImage.width, height: ditheredImage.height }
-    : null;
+  const comparisonDimensions = ditheredDimensions;
 
   // Convert uploaded image to blob URL
   const originalImageUrl = useMemo(() => {
@@ -31,23 +29,6 @@ export function CanvasPreview({
     }
     return URL.createObjectURL(uploadedImage);
   }, [uploadedImage]);
-
-  // Convert dithered ImageData to blob URL
-  useEffect(() => {
-    if (!(ditheredImage && canvasRef.current)) {
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    canvas.width = ditheredImage.width;
-    canvas.height = ditheredImage.height;
-
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.putImageData(ditheredImage, 0, 0);
-      setDitheredImageUrl(canvas.toDataURL("image/png"));
-    }
-  }, [ditheredImage]);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -125,7 +106,6 @@ export function CanvasPreview({
           </div>
         )
       )}
-      <canvas className="hidden" ref={canvasRef} />
     </div>
   );
 }

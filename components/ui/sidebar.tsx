@@ -1,20 +1,21 @@
 "use client";
 
-import { SidebarIcon } from "@fingertip/icons";
+import { CrossLargeIcon, SidebarIcon } from "@fingertip/icons";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 // biome-ignore lint/performance/noNamespaceImport: React namespace import needed for ref types
 import * as React from "react";
+import {
+  BottomSheet,
+  BottomSheetClose,
+  BottomSheetContent,
+  BottomSheetDescription,
+  BottomSheetHeader,
+  BottomSheetTitle,
+} from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -28,7 +29,6 @@ import { cn } from "@/lib/utils";
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "22rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -156,6 +156,7 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
+  mobileVariant = "sheet",
   className,
   children,
   ...props
@@ -163,8 +164,10 @@ function Sidebar({
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
+  mobileVariant?: "sheet" | "none";
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const shouldUseMobileSheet = isMobile && mobileVariant === "sheet";
 
   if (collapsible === "none") {
     return (
@@ -181,28 +184,41 @@ function Sidebar({
     );
   }
 
-  if (isMobile) {
+  if (shouldUseMobileSheet) {
     return (
-      <Sheet onOpenChange={setOpenMobile} open={openMobile} {...props}>
-        <SheetContent
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+      <BottomSheet onOpenChange={setOpenMobile} open={openMobile} {...props}>
+        <BottomSheetContent
+          className="bg-sidebar p-0 pb-32 text-sidebar-foreground"
           data-mobile="true"
           data-sidebar="sidebar"
           data-slot="sidebar"
-          side={side}
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
+          hideOverlay
         >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+          <div className="relative flex items-center justify-center px-4 pt-3">
+            <div
+              aria-hidden="true"
+              className="h-1.5 w-12 rounded-full bg-muted"
+            />
+            <BottomSheetClose asChild>
+              <Button
+                aria-label="Close controls"
+                className="absolute top-2 right-2"
+                size="icon"
+                variant="ghost"
+              >
+                <CrossLargeIcon className="size-4" />
+              </Button>
+            </BottomSheetClose>
+          </div>
+          <BottomSheetHeader className="sr-only">
+            <BottomSheetTitle>Controls</BottomSheetTitle>
+            <BottomSheetDescription>
+              Displays the controls.
+            </BottomSheetDescription>
+          </BottomSheetHeader>
+          <div className="flex min-h-0 w-full flex-col">{children}</div>
+        </BottomSheetContent>
+      </BottomSheet>
     );
   }
 
@@ -257,12 +273,15 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  label = "Controls",
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button> & { label?: string }) {
   const { toggleSidebar } = useSidebar();
+  const ariaLabel = props["aria-label"] ?? label;
 
   return (
     <Button
+      aria-label={ariaLabel}
       className={cn("size-7", className)}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
@@ -275,7 +294,7 @@ function SidebarTrigger({
       {...props}
     >
       <SidebarIcon />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">{ariaLabel}</span>
     </Button>
   );
 }
