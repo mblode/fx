@@ -4,6 +4,7 @@ import {
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
   CloudUploadIcon,
+  EyeOpenIcon,
 } from "@fingertip/icons";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -26,12 +27,14 @@ export default function DitherPage() {
     updateParameters,
   } = useDither();
 
+  const [showOriginal, setShowOriginal] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles[0]) {
         setUploadedImage(acceptedFiles[0]);
+        setShowOriginal(false);
       }
     },
     [setUploadedImage]
@@ -111,6 +114,20 @@ export default function DitherPage() {
         {/* Mobile header */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
           <h1 className="flex-1 font-semibold text-sm">Blue noise</h1>
+          {ditheredImage && (
+            <Button
+              aria-label={
+                showOriginal ? "Show dithered image" : "Show original image"
+              }
+              aria-pressed={showOriginal}
+              onClick={() => setShowOriginal((prev) => !prev)}
+              size="sm"
+              variant={showOriginal ? "default" : "outline"}
+            >
+              <EyeOpenIcon className="h-4 w-4" />
+              Original
+            </Button>
+          )}
           <Button
             aria-label={uploadedImage ? "Upload new image" : "Upload image"}
             onClick={open}
@@ -118,7 +135,7 @@ export default function DitherPage() {
             variant="outline"
           >
             <ArrowUpCircleIcon className="h-4 w-4" />
-            {uploadedImage ? "Upload new" : "Upload"}
+            Upload
           </Button>
           {ditheredImage && (
             <Button
@@ -136,9 +153,23 @@ export default function DitherPage() {
 
         {/* Desktop header with download button */}
         <header className="hidden h-14 shrink-0 items-center justify-end gap-2 border-b px-4 md:flex">
+          {ditheredImage && (
+            <Button
+              aria-label={
+                showOriginal ? "Show dithered image" : "Show original image"
+              }
+              aria-pressed={showOriginal}
+              onClick={() => setShowOriginal((prev) => !prev)}
+              size="sm"
+              variant={showOriginal ? "default" : "outline"}
+            >
+              <EyeOpenIcon className="size-4" />
+              Original
+            </Button>
+          )}
           <Button onClick={open} size="sm" variant="outline">
             <ArrowUpCircleIcon className="size-4" />
-            {uploadedImage ? "Upload new" : "Upload"}
+            Upload
           </Button>
           {ditheredImage && (
             <Button
@@ -189,6 +220,7 @@ export default function DitherPage() {
                 ditheredImage={ditheredImage}
                 isProcessing={isProcessing}
                 onBrowse={open}
+                showOriginal={showOriginal}
                 uploadedImage={uploadedImage}
               />
             </main>
