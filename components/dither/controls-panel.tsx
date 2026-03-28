@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,18 +20,21 @@ export function ControlsPanel({
   originalDimensions,
   disabled,
 }: ControlsPanelProps) {
+  // Local drag state: non-null only while the user is actively dragging
+  const [localBrightness, setLocalBrightness] = useState<number | null>(null);
+  const [localContrast, setLocalContrast] = useState<number | null>(null);
+  const [localPixelSize, setLocalPixelSize] = useState<number | null>(null);
+
+  const displayBrightness = localBrightness ?? parameters.brightness;
+  const displayContrast = localContrast ?? parameters.contrast;
+  const displayPixelSize = localPixelSize ?? parameters.pixelSize;
+
   const brightnessValue = useMemo(
-    () => [parameters.brightness],
-    [parameters.brightness]
+    () => [displayBrightness],
+    [displayBrightness]
   );
-  const contrastValue = useMemo(
-    () => [parameters.contrast],
-    [parameters.contrast]
-  );
-  const pixelSizeValue = useMemo(
-    () => [parameters.pixelSize],
-    [parameters.pixelSize]
-  );
+  const contrastValue = useMemo(() => [displayContrast], [displayContrast]);
+  const pixelSizeValue = useMemo(() => [displayPixelSize], [displayPixelSize]);
 
   // Calculate output dimensions based on maxWidth
   let outputWidth: number | null = null;
@@ -75,16 +78,18 @@ export function ControlsPanel({
 
         <div className="space-y-2">
           <Label htmlFor="brightness">
-            Brightness: {Math.round(parameters.brightness)}
+            Brightness: {Math.round(displayBrightness)}
           </Label>
           <Slider
             disabled={disabled}
             id="brightness"
             max={100}
             min={-100}
-            onValueChange={([value]) =>
-              onParametersChange({ brightness: value })
-            }
+            onValueChange={([value]) => setLocalBrightness(value)}
+            onValueCommit={([value]) => {
+              setLocalBrightness(null);
+              onParametersChange({ brightness: value });
+            }}
             showOrigin
             step={5}
             value={brightnessValue}
@@ -93,14 +98,18 @@ export function ControlsPanel({
 
         <div className="space-y-2">
           <Label htmlFor="contrast">
-            Contrast: {Math.round(parameters.contrast)}
+            Contrast: {Math.round(displayContrast)}
           </Label>
           <Slider
             disabled={disabled}
             id="contrast"
             max={100}
             min={-100}
-            onValueChange={([value]) => onParametersChange({ contrast: value })}
+            onValueChange={([value]) => setLocalContrast(value)}
+            onValueCommit={([value]) => {
+              setLocalContrast(null);
+              onParametersChange({ contrast: value });
+            }}
             showOrigin
             step={5}
             value={contrastValue}
@@ -108,15 +117,17 @@ export function ControlsPanel({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pixelSize">Pixelation: {parameters.pixelSize}×</Label>
+          <Label htmlFor="pixelSize">Pixelation: {displayPixelSize}×</Label>
           <Slider
             disabled={disabled}
             id="pixelSize"
             max={16}
             min={1}
-            onValueChange={([value]) =>
-              onParametersChange({ pixelSize: value })
-            }
+            onValueChange={([value]) => setLocalPixelSize(value)}
+            onValueCommit={([value]) => {
+              setLocalPixelSize(null);
+              onParametersChange({ pixelSize: value });
+            }}
             step={1}
             value={pixelSizeValue}
           />
