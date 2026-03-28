@@ -62,11 +62,12 @@ function Slider({
           <div className="pointer-events-none absolute top-1/2 left-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-foreground/30" />
         )}
       </SliderPrimitive.Track>
-      {values.map((thumbValue) => (
+      {values.map((_thumbValue, index) => (
         <SliderPrimitive.Thumb
           className="block size-7 shrink-0 rounded-full border border-border bg-white shadow-lg ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus:border-ring focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
           data-slot="slider-thumb"
-          key={thumbValue}
+          // biome-ignore lint/suspicious/noArrayIndexKey: Thumb count is fixed; index keys prevent DOM churn during drag
+          key={index}
         >
           {showValue && (
             <div className="absolute top-9 left-1/2 h-8 w-fit -translate-x-1/2 text-center text-foreground text-xs">
