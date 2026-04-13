@@ -1,10 +1,7 @@
 import type { DitherParameters, NoiseTexture } from "./types";
 import { applyBrightness, applyContrast, hexToRgb, wrap } from "./utils";
 
-/**
- * Load an image from a File object
- */
-function loadImage(file: File): Promise<HTMLImageElement> {
+export function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -16,34 +13,13 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-/**
- * Resize an image using Canvas API
- */
-function _resizeImage(
-  img: HTMLImageElement,
-  maxWidth?: number,
-  maxHeight?: number
-): { canvas: HTMLCanvasElement; width: number; height: number } {
-  let width = img.width;
-  let height = img.height;
-
-  if (maxWidth && width > maxWidth) {
-    height = (height * maxWidth) / width;
-    width = maxWidth;
-  }
-
-  if (maxHeight && height > maxHeight) {
-    width = (width * maxHeight) / height;
-    height = maxHeight;
-  }
-
-  // CRITICAL FIX: Floor dimensions before use to prevent fractional pixels
-  const flooredWidth = Math.floor(width);
-  const flooredHeight = Math.floor(height);
-
+function createCanvasContext(
+  width: number,
+  height: number
+): CanvasRenderingContext2D {
   const canvas = document.createElement("canvas");
-  canvas.width = flooredWidth;
-  canvas.height = flooredHeight;
+  canvas.width = width;
+  canvas.height = height;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -52,15 +28,84 @@ function _resizeImage(
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, 0, 0, flooredWidth, flooredHeight);
-
-  return { canvas, width: flooredWidth, height: flooredHeight };
+  return ctx;
 }
 
-/**
- * Apply blue noise dithering to an image
- * Adapted from blue-noise-typescript/src/dither.ts for browser use
- */
+function getTargetDimensions(
+  img: HTMLImageElement,
+  maxWidth: number | null | undefined
+): { width: number; height: number } {
+  if (!maxWidth || img.width <= maxWidth) {
+    return { width: img.width, height: img.height };
+  }
+
+  return {
+    width: maxWidth,
+    height: Math.floor((img.height * maxWidth) / img.width),
+  };
+}
+
+function applyToneAdjustments(
+  imageData: ImageData,
+  params: DitherParameters
+): ImageData {
+  let adjustedImageData = imageData;
+
+  if (params.brightness !== 0) {
+    adjustedImageData = applyBrightness(adjustedImageData, params.brightness);
+  }
+
+  if (params.contrast !== 0) {
+    adjustedImageData = applyContrast(adjustedImageData, params.contrast);
+  }
+
+  return adjustedImageData;
+}
+
+function toGrayscaleData(imageData: ImageData): Uint8ClampedArray {
+  const grayscaleData = new Uint8ClampedArray(
+    imageData.width * imageData.height
+  );
+
+  for (let index = 0; index < imageData.data.length; index += 4) {
+    const averageLuma =
+      (imageData.data[index] +
+        imageData.data[index + 1] +
+        imageData.data[index + 2]) /
+      3;
+    grayscaleData[index / 4] = averageLuma;
+  }
+
+  return grayscaleData;
+}
+
+function upscaleImageData(
+  sourceData: Uint8ClampedArray,
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+  pixelSize: number
+): ImageData {
+  const upscaledData = new Uint8ClampedArray(targetWidth * targetHeight * 4);
+
+  for (let y = 0; y < targetHeight; y++) {
+    for (let x = 0; x < targetWidth; x++) {
+      const sourceX = Math.min(sourceWidth - 1, Math.floor(x / pixelSize));
+      const sourceY = Math.min(sourceHeight - 1, Math.floor(y / pixelSize));
+      const sourceIndex = (sourceY * sourceWidth + sourceX) * 4;
+      const targetIndex = (y * targetWidth + x) * 4;
+
+      upscaledData[targetIndex] = sourceData[sourceIndex];
+      upscaledData[targetIndex + 1] = sourceData[sourceIndex + 1];
+      upscaledData[targetIndex + 2] = sourceData[sourceIndex + 2];
+      upscaledData[targetIndex + 3] = 255;
+    }
+  }
+
+  return new ImageData(upscaledData, targetWidth, targetHeight);
+}
+
 export async function applyDither(
   imageFile: File,
   noise: NoiseTexture,
@@ -69,74 +114,32 @@ export async function applyDither(
   const fg = hexToRgb(params.foreground);
   const bg = hexToRgb(params.background);
 
-  // Load image
   const img = await loadImage(imageFile);
-
-  // Calculate target dimensions before pixelation
-  let targetWidth = img.width;
-  let targetHeight = img.height;
-
-  if (
-    params.maxWidth !== null &&
-    params.maxWidth !== undefined &&
-    img.width > params.maxWidth
-  ) {
-    targetHeight = Math.floor((img.height * params.maxWidth) / img.width);
-    targetWidth = params.maxWidth;
-  }
-
-  // Calculate dimensions for dithering (downscaled by pixelSize)
-  const pixelSize = Math.floor(params.pixelSize);
+  const { width: targetWidth, height: targetHeight } = getTargetDimensions(
+    img,
+    params.maxWidth
+  );
+  const pixelSize = Math.max(1, Math.floor(params.pixelSize));
   const ditherWidth = Math.max(1, Math.floor(targetWidth / pixelSize));
   const ditherHeight = Math.max(1, Math.floor(targetHeight / pixelSize));
 
-  // Create canvas for downscaled image (this is what we'll dither)
-  const canvas = document.createElement("canvas");
-  canvas.width = ditherWidth;
-  canvas.height = ditherHeight;
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Could not get canvas context");
-  }
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  const ctx = createCanvasContext(ditherWidth, ditherHeight);
   ctx.drawImage(img, 0, 0, ditherWidth, ditherHeight);
 
-  const width = ditherWidth;
-  const height = ditherHeight;
+  const imageData = applyToneAdjustments(
+    ctx.getImageData(0, 0, ditherWidth, ditherHeight),
+    params
+  );
+  const grayscaleData = toGrayscaleData(imageData);
+  const outputData = new Uint8ClampedArray(ditherWidth * ditherHeight * 4);
 
-  // Get image data
-  let imageData = ctx.getImageData(0, 0, width, height);
-
-  // Apply tone adjustments
-  if (params.brightness !== 0) {
-    imageData = applyBrightness(imageData, params.brightness);
-  }
-
-  if (params.contrast !== 0) {
-    imageData = applyContrast(imageData, params.contrast);
-  }
-
-  // Convert to grayscale
-  const grayscaleData = new Uint8ClampedArray(width * height);
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    const avg =
-      (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-    grayscaleData[i / 4] = avg;
-  }
-
-  // Apply dithering algorithm (copied from dither.ts:111-138)
-  const outputData = new Uint8ClampedArray(width * height * 4);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  for (let y = 0; y < ditherHeight; y++) {
+    for (let x = 0; x < ditherWidth; x++) {
       const wrapX = wrap(noise.width, x);
       const wrapY = wrap(noise.height, y);
 
       const noiseIdx = wrapY * noise.width + wrapX;
-      const imageIdx = y * width + x;
+      const imageIdx = y * ditherWidth + x;
       const outputIdx = imageIdx * 4;
 
       const noiseLuma = noise.data[noiseIdx];
@@ -157,32 +160,16 @@ export async function applyDither(
     }
   }
 
-  // If pixelSize > 1, upscale using nearest-neighbor to create blocky pixels
-  if (pixelSize > 1) {
-    const upscaledWidth = targetWidth;
-    const upscaledHeight = targetHeight;
-    const upscaledData = new Uint8ClampedArray(
-      upscaledWidth * upscaledHeight * 4
-    );
-
-    // Nearest-neighbor upscaling
-    for (let y = 0; y < upscaledHeight; y++) {
-      for (let x = 0; x < upscaledWidth; x++) {
-        // Map to source pixel
-        const srcX = Math.min(width - 1, Math.floor(x / pixelSize));
-        const srcY = Math.min(height - 1, Math.floor(y / pixelSize));
-        const srcIdx = (srcY * width + srcX) * 4;
-        const dstIdx = (y * upscaledWidth + x) * 4;
-
-        upscaledData[dstIdx] = outputData[srcIdx];
-        upscaledData[dstIdx + 1] = outputData[srcIdx + 1];
-        upscaledData[dstIdx + 2] = outputData[srcIdx + 2];
-        upscaledData[dstIdx + 3] = 255;
-      }
-    }
-
-    return new ImageData(upscaledData, upscaledWidth, upscaledHeight);
+  if (pixelSize === 1) {
+    return new ImageData(outputData, ditherWidth, ditherHeight);
   }
 
-  return new ImageData(outputData, width, height);
+  return upscaleImageData(
+    outputData,
+    ditherWidth,
+    ditherHeight,
+    targetWidth,
+    targetHeight,
+    pixelSize
+  );
 }

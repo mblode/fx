@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { applyDither } from "@/lib/dither/core";
+import { applyDither, loadImage } from "@/lib/dither/core";
 import type { DitherParameters } from "@/lib/dither/types";
 import { loadNoiseTexture, NOISE_TEXTURES } from "@/lib/noise/textures";
 import { useDebounce } from "./use-debounce";
+
+const DITHER_DEBOUNCE_MS = 300;
+const DEFAULT_PREVIEW_WIDTH = 512;
 
 const DEFAULT_PARAMETERS: DitherParameters = {
   foreground: "#000000",
@@ -15,6 +18,31 @@ const DEFAULT_PARAMETERS: DitherParameters = {
   maxWidth: null,
   pixelSize: 1,
 };
+
+function getNoiseTextureDataUrl(size: number): string {
+  const noiseTexture = NOISE_TEXTURES.find((texture) => texture.size === size);
+
+  if (!noiseTexture) {
+    throw new Error("Noise texture not found");
+  }
+
+  return noiseTexture.dataUrl;
+}
+
+function getPixelSizeForWidth(width: number): number {
+  return Math.max(1, Math.round(width / DEFAULT_PREVIEW_WIDTH));
+}
+
+function hasDimensionsChanged(
+  currentDimensions: { width: number; height: number } | null,
+  nextWidth: number,
+  nextHeight: number
+): boolean {
+  return (
+    currentDimensions?.width !== nextWidth ||
+    currentDimensions?.height !== nextHeight
+  );
+}
 
 export function useDither() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -27,67 +55,64 @@ export function useDither() {
     height: number;
   } | null>(null);
 
-  // Debounce parameters for real-time updates (300ms)
-  const debouncedParams = useDebounce(parameters, 300);
+  const debouncedParams = useDebounce(parameters, DITHER_DEBOUNCE_MS);
 
-  // Process image when parameters or uploaded image changes
   useEffect(() => {
     if (!uploadedImage) {
       setDitheredImage(null);
       return;
     }
 
+    let isCancelled = false;
+
     const processDither = async () => {
       setIsProcessing(true);
 
       try {
-        // Load image to get original dimensions
-        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-          const imgEl = new Image();
-          imgEl.onload = () => {
-            URL.revokeObjectURL(imgEl.src);
-            resolve(imgEl);
-          };
-          imgEl.onerror = reject;
-          imgEl.src = URL.createObjectURL(uploadedImage);
-        });
+        const image = await loadImage(uploadedImage);
+        if (isCancelled) {
+          return;
+        }
 
-        // Set original dimensions and calculate pixelSize if this is a new image
-        if (!originalDimensions || originalDimensions.width !== img.width) {
-          setOriginalDimensions({ width: img.width, height: img.height });
+        if (
+          hasDimensionsChanged(originalDimensions, image.width, image.height)
+        ) {
+          setOriginalDimensions({ width: image.width, height: image.height });
 
-          // Calculate pixelSize as originalWidth / 512 and reset maxWidth to use original size
-          const calculatedPixelSize = Math.max(1, Math.round(img.width / 512));
           setParameters((prev) => ({
             ...prev,
-            pixelSize: calculatedPixelSize,
+            pixelSize: getPixelSizeForWidth(image.width),
             maxWidth: null,
           }));
         }
 
-        // Find noise texture
-        const noiseTexture = NOISE_TEXTURES.find(
-          (t) => t.size === debouncedParams.noiseSize
+        const noise = await loadNoiseTexture(
+          getNoiseTextureDataUrl(debouncedParams.noiseSize)
         );
-        if (!noiseTexture) {
-          throw new Error("Noise texture not found");
+        if (isCancelled) {
+          return;
         }
 
-        // Load noise texture
-        const noise = await loadNoiseTexture(noiseTexture.dataUrl);
-
-        // Apply dithering
         const result = await applyDither(uploadedImage, noise, debouncedParams);
+        if (isCancelled) {
+          return;
+        }
 
         setDitheredImage(result);
       } catch (error) {
         console.error("Dithering error:", error);
       } finally {
-        setIsProcessing(false);
+        if (!isCancelled) {
+          setIsProcessing(false);
+        }
       }
     };
 
     processDither();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [uploadedImage, debouncedParams, originalDimensions]);
 
   const updateParameters = useCallback((updates: Partial<DitherParameters>) => {
