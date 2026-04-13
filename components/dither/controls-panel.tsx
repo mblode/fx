@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,30 @@ interface ControlsPanelProps {
   onParametersChange: (params: Partial<DitherParameters>) => void;
   originalDimensions?: { width: number; height: number } | null;
   disabled?: boolean;
+}
+
+function toSliderValue(value: number): [number] {
+  return [value];
+}
+
+function getOutputDimensions(
+  parameters: DitherParameters,
+  originalDimensions: { width: number; height: number } | null | undefined
+): { width: number; height: number } | null {
+  if (!originalDimensions) {
+    return null;
+  }
+
+  const maxWidth = parameters.maxWidth;
+  const width =
+    maxWidth && originalDimensions.width > maxWidth
+      ? maxWidth
+      : originalDimensions.width;
+  const height = Math.floor(
+    originalDimensions.height * (width / originalDimensions.width)
+  );
+
+  return { width, height };
 }
 
 export function ControlsPanel({
@@ -28,34 +52,12 @@ export function ControlsPanel({
   const displayBrightness = localBrightness ?? parameters.brightness;
   const displayContrast = localContrast ?? parameters.contrast;
   const displayPixelSize = localPixelSize ?? parameters.pixelSize;
-
-  const brightnessValue = useMemo(
-    () => [displayBrightness],
-    [displayBrightness]
-  );
-  const contrastValue = useMemo(() => [displayContrast], [displayContrast]);
-  const pixelSizeValue = useMemo(() => [displayPixelSize], [displayPixelSize]);
-
-  // Calculate output dimensions based on maxWidth
-  let outputWidth: number | null = null;
-  if (originalDimensions) {
-    if (
-      parameters.maxWidth !== null &&
-      parameters.maxWidth !== undefined &&
-      originalDimensions.width > parameters.maxWidth
-    ) {
-      outputWidth = parameters.maxWidth;
-    } else {
-      outputWidth = originalDimensions.width;
-    }
-  }
-
-  const outputHeight =
-    outputWidth && originalDimensions
-      ? Math.floor(
-          originalDimensions.height * (outputWidth / originalDimensions.width)
-        )
-      : (originalDimensions?.height ?? null);
+  const outputDimensions = getOutputDimensions(parameters, originalDimensions);
+  const maxWidthValue = parameters.maxWidth ?? "";
+  const maxWidthPlaceholder =
+    originalDimensions?.width.toString() ?? "Original";
+  const isUsingOriginalWidth =
+    !originalDimensions || outputDimensions?.width === originalDimensions.width;
 
   return (
     <div className="space-y-6">
@@ -92,7 +94,7 @@ export function ControlsPanel({
             }}
             showOrigin
             step={5}
-            value={brightnessValue}
+            value={toSliderValue(displayBrightness)}
           />
         </div>
 
@@ -112,7 +114,7 @@ export function ControlsPanel({
             }}
             showOrigin
             step={5}
-            value={contrastValue}
+            value={toSliderValue(displayContrast)}
           />
         </div>
 
@@ -129,7 +131,7 @@ export function ControlsPanel({
               onParametersChange({ pixelSize: value });
             }}
             step={1}
-            value={pixelSizeValue}
+            value={toSliderValue(displayPixelSize)}
           />
           <p
             className="text-muted-foreground text-sm leading-[1.6]"
@@ -142,7 +144,7 @@ export function ControlsPanel({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="maxWidth">Maximum width</Label>
-            {originalDimensions && outputWidth !== originalDimensions.width && (
+            {originalDimensions && !isUsingOriginalWidth && (
               <button
                 className="text-muted-foreground text-xs underline underline-offset-2 hover:text-foreground"
                 onClick={() => onParametersChange({ maxWidth: null })}
@@ -169,23 +171,19 @@ export function ControlsPanel({
                 }
               }
             }}
-            placeholder={originalDimensions?.width.toString() || "Original"}
+            placeholder={maxWidthPlaceholder}
             step={128}
             type="number"
-            value={
-              parameters.maxWidth === null || parameters.maxWidth === undefined
-                ? ""
-                : parameters.maxWidth
-            }
+            value={maxWidthValue}
           />
-          {originalDimensions && (
+          {originalDimensions && outputDimensions && (
             <p
               className="text-muted-foreground text-sm leading-[1.6]"
               style={{ textWrap: "pretty" }}
             >
-              {outputWidth === originalDimensions.width
+              {isUsingOriginalWidth
                 ? `Using original size: ${originalDimensions.width}\u00A0×\u00A0${originalDimensions.height}\u00A0px`
-                : `Resizing from ${originalDimensions.width}\u00A0×\u00A0${originalDimensions.height} to ${outputWidth}\u00A0×\u00A0${outputHeight}\u00A0px`}
+                : `Resizing from ${originalDimensions.width}\u00A0×\u00A0${originalDimensions.height} to ${outputDimensions.width}\u00A0×\u00A0${outputDimensions.height}\u00A0px`}
             </p>
           )}
         </div>

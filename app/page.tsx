@@ -16,6 +16,23 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { useDither } from "@/hooks/use-dither";
 import { cn } from "@/lib/utils";
 
+const DOWNLOAD_FEEDBACK_DURATION_MS = 2000;
+
+function getDownloadFilename(uploadedImage: File | null): string {
+  if (!uploadedImage?.name) {
+    return "dithered-image.png";
+  }
+
+  const lastDotIndex = uploadedImage.name.lastIndexOf(".");
+  if (lastDotIndex <= 0) {
+    return `${uploadedImage.name}-dithered.png`;
+  }
+
+  const nameWithoutExtension = uploadedImage.name.slice(0, lastDotIndex);
+  const extension = uploadedImage.name.slice(lastDotIndex);
+  return `${nameWithoutExtension}-dithered${extension}`;
+}
+
 export default function DitherPage() {
   const {
     uploadedImage,
@@ -29,6 +46,12 @@ export default function DitherPage() {
 
   const [showOriginal, setShowOriginal] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const canDownload = ditheredImage !== null;
+  const originalToggleLabel = showOriginal
+    ? "Show dithered image"
+    : "Show original image";
+  const uploadButtonLabel = uploadedImage ? "Upload new image" : "Upload image";
+  const downloadButtonClassName = cn(downloadSuccess && "scale-110");
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -39,6 +62,10 @@ export default function DitherPage() {
     },
     [setUploadedImage]
   );
+
+  const handleToggleOriginal = () => {
+    setShowOriginal((prev) => !prev);
+  };
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
@@ -52,19 +79,7 @@ export default function DitherPage() {
     if (!ditheredImage) {
       return;
     }
-
-    // Generate filename from original with -dithered suffix
-    let filename = "dithered-image.png";
-    if (uploadedImage?.name) {
-      const lastDotIndex = uploadedImage.name.lastIndexOf(".");
-      if (lastDotIndex > 0) {
-        const nameWithoutExt = uploadedImage.name.substring(0, lastDotIndex);
-        const ext = uploadedImage.name.substring(lastDotIndex);
-        filename = `${nameWithoutExt}-dithered${ext}`;
-      } else {
-        filename = `${uploadedImage.name}-dithered.png`;
-      }
-    }
+    const filename = getDownloadFilename(uploadedImage);
 
     const canvas = document.createElement("canvas");
     canvas.width = ditheredImage.width;
@@ -90,9 +105,11 @@ export default function DitherPage() {
 
       URL.revokeObjectURL(url);
 
-      // Show success feedback
       setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 2000);
+      window.setTimeout(
+        () => setDownloadSuccess(false),
+        DOWNLOAD_FEEDBACK_DURATION_MS
+      );
     }, "image/png");
   };
 
@@ -111,16 +128,13 @@ export default function DitherPage() {
         uploadedImage={uploadedImage}
       />
       <SidebarInset className="flex flex-col">
-        {/* Mobile header */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
           <h1 className="flex-1 font-semibold text-sm">Blue noise</h1>
-          {ditheredImage && (
+          {canDownload && (
             <Button
-              aria-label={
-                showOriginal ? "Show dithered image" : "Show original image"
-              }
+              aria-label={originalToggleLabel}
               aria-pressed={showOriginal}
-              onClick={() => setShowOriginal((prev) => !prev)}
+              onClick={handleToggleOriginal}
               size="sm"
               variant={showOriginal ? "default" : "outline"}
             >
@@ -129,7 +143,7 @@ export default function DitherPage() {
             </Button>
           )}
           <Button
-            aria-label={uploadedImage ? "Upload new image" : "Upload image"}
+            aria-label={uploadButtonLabel}
             onClick={open}
             size="sm"
             variant="outline"
@@ -137,10 +151,10 @@ export default function DitherPage() {
             <ArrowUpCircleIcon className="h-4 w-4" />
             Upload
           </Button>
-          {ditheredImage && (
+          {canDownload && (
             <Button
               aria-label="Download dithered image"
-              className={cn(downloadSuccess && "scale-110")}
+              className={downloadButtonClassName}
               onClick={handleDownload}
               size="sm"
               variant="default"
@@ -151,15 +165,12 @@ export default function DitherPage() {
           )}
         </header>
 
-        {/* Desktop header with download button */}
         <header className="hidden h-14 shrink-0 items-center justify-end gap-2 border-b px-4 md:flex">
-          {ditheredImage && (
+          {canDownload && (
             <Button
-              aria-label={
-                showOriginal ? "Show dithered image" : "Show original image"
-              }
+              aria-label={originalToggleLabel}
               aria-pressed={showOriginal}
-              onClick={() => setShowOriginal((prev) => !prev)}
+              onClick={handleToggleOriginal}
               size="sm"
               variant={showOriginal ? "default" : "outline"}
             >
@@ -167,13 +178,18 @@ export default function DitherPage() {
               Original
             </Button>
           )}
-          <Button onClick={open} size="sm" variant="outline">
+          <Button
+            aria-label={uploadButtonLabel}
+            onClick={open}
+            size="sm"
+            variant="outline"
+          >
             <ArrowUpCircleIcon className="size-4" />
             Upload
           </Button>
-          {ditheredImage && (
+          {canDownload && (
             <Button
-              className={cn(downloadSuccess && "scale-110")}
+              className={downloadButtonClassName}
               onClick={handleDownload}
               size="sm"
             >
@@ -194,7 +210,6 @@ export default function DitherPage() {
           >
             <input {...getInputProps()} />
 
-            {/* Drag overlay - scoped to main content area */}
             {isDragActive && (
               <div className="fade-in-0 pointer-events-none absolute inset-0 z-50 flex animate-in items-center justify-center bg-primary/5 duration-150">
                 <div className="data-motion-scale fade-in-0 zoom-in-95 flex animate-in flex-col items-center gap-3 rounded-lg border-2 border-primary bg-background p-8 shadow-lg duration-200 [animation-timing-function:var(--ease-enter)]">
