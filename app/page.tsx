@@ -5,7 +5,7 @@ import {
   ArrowUpCircleIcon,
   CloudUploadIcon,
   EyeOpenIcon,
-} from "@fingertip/icons";
+} from "blode-icons-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -21,6 +21,7 @@ export default function DitherPage() {
     uploadedImage,
     ditheredImage,
     isProcessing,
+    isLoadingPlaceholder,
     parameters,
     originalDimensions,
     setUploadedImage,
@@ -218,6 +219,7 @@ export default function DitherPage() {
               </h1>
               <CanvasPreview
                 ditheredImage={ditheredImage}
+                isLoadingPlaceholder={isLoadingPlaceholder}
                 isProcessing={isProcessing}
                 onBrowse={open}
                 showOriginal={showOriginal}
