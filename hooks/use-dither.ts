@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { applyDither } from "@/lib/dither/core";
 import type { DitherParameters } from "@/lib/dither/types";
 import { loadNoiseTexture, NOISE_TEXTURES } from "@/lib/noise/textures";
@@ -27,8 +27,32 @@ export function useDither() {
     height: number;
   } | null>(null);
 
-  // Debounce parameters for real-time updates (300ms)
-  const debouncedParams = useDebounce(parameters, 300);
+  const debouncedParams = useDebounce(parameters, 100);
+
+  const placeholderAttempted = useRef(false);
+  const [isLoadingPlaceholder, setIsLoadingPlaceholder] = useState(true);
+
+  useEffect(() => {
+    if (placeholderAttempted.current || uploadedImage) {
+      setIsLoadingPlaceholder(false);
+      return;
+    }
+    placeholderAttempted.current = true;
+
+    const loadPlaceholder = async () => {
+      try {
+        const response = await fetch("/placeholder.jpg");
+        const blob = await response.blob();
+        const file = new File([blob], "placeholder.jpg", { type: blob.type });
+        setUploadedImage(file);
+      } catch {
+        // Silent fallback to empty state
+      } finally {
+        setIsLoadingPlaceholder(false);
+      }
+    };
+    loadPlaceholder();
+  }, [uploadedImage]);
 
   // Process image when parameters or uploaded image changes
   useEffect(() => {
@@ -98,6 +122,7 @@ export function useDither() {
     uploadedImage,
     ditheredImage,
     isProcessing,
+    isLoadingPlaceholder,
     parameters,
     originalDimensions,
     setUploadedImage,
