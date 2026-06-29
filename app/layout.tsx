@@ -1,5 +1,6 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
+import { CraftedBy } from "@/components/crafted-by";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import "./globals.css";
 
@@ -142,6 +143,11 @@ export default function RootLayout({
       <body className="h-full antialiased">
         <GoogleAnalytics gaId="G-61F273Q9JP" />
         <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
+        <footer className="pointer-events-none fixed right-3 bottom-3 z-10 flex justify-end">
+          <span className="pointer-events-auto">
+            <CraftedBy />
+          </span>
+        </footer>
       </body>
     </html>
   );
