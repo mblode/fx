@@ -114,7 +114,7 @@ export default function DitherPage() {
       <SidebarInset className="flex flex-col">
         {/* Mobile header */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
-          <h1 className="flex-1 font-semibold text-sm">Blue noise</h1>
+          <p className="flex-1 font-semibold text-sm">Blue noise</p>
           {ditheredImage && (
             <Button
               aria-label={
