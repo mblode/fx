@@ -17,117 +17,69 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 /**
- * Resize an image using Canvas API
+ * Compute the output (target) dimensions for a source of the given size,
+ * honoring params.maxWidth.
  */
-function _resizeImage(
-  img: HTMLImageElement,
-  maxWidth?: number,
-  maxHeight?: number
-): { canvas: HTMLCanvasElement; width: number; height: number } {
-  let width = img.width;
-  let height = img.height;
-
-  if (maxWidth && width > maxWidth) {
-    height = (height * maxWidth) / width;
-    width = maxWidth;
-  }
-
-  if (maxHeight && height > maxHeight) {
-    width = (width * maxHeight) / height;
-    height = maxHeight;
-  }
-
-  // CRITICAL FIX: Floor dimensions before use to prevent fractional pixels
-  const flooredWidth = Math.floor(width);
-  const flooredHeight = Math.floor(height);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = flooredWidth;
-  canvas.height = flooredHeight;
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Could not get canvas context");
-  }
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, 0, 0, flooredWidth, flooredHeight);
-
-  return { canvas, width: flooredWidth, height: flooredHeight };
-}
-
-/**
- * Apply blue noise dithering to an image
- * Adapted from blue-noise-typescript/src/dither.ts for browser use
- */
-export async function applyDither(
-  imageFile: File,
-  noise: NoiseTexture,
+export function getTargetDimensions(
+  sourceWidth: number,
+  sourceHeight: number,
   params: DitherParameters
-): Promise<ImageData> {
-  const fg = hexToRgb(params.foreground);
-  const bg = hexToRgb(params.background);
-
-  // Load image
-  const img = await loadImage(imageFile);
-
-  // Calculate target dimensions before pixelation
-  let targetWidth = img.width;
-  let targetHeight = img.height;
+): { width: number; height: number } {
+  let targetWidth = sourceWidth;
+  let targetHeight = sourceHeight;
 
   if (
     params.maxWidth !== null &&
     params.maxWidth !== undefined &&
-    img.width > params.maxWidth
+    sourceWidth > params.maxWidth
   ) {
-    targetHeight = Math.floor((img.height * params.maxWidth) / img.width);
+    targetHeight = Math.floor((sourceHeight * params.maxWidth) / sourceWidth);
     targetWidth = params.maxWidth;
   }
 
-  // Calculate dimensions for dithering (downscaled by pixelSize)
-  const pixelSize = Math.floor(params.pixelSize);
-  const ditherWidth = Math.max(1, Math.floor(targetWidth / pixelSize));
-  const ditherHeight = Math.max(1, Math.floor(targetHeight / pixelSize));
+  return { width: targetWidth, height: targetHeight };
+}
 
-  // Create canvas for downscaled image (this is what we'll dither)
-  const canvas = document.createElement("canvas");
-  canvas.width = ditherWidth;
-  canvas.height = ditherHeight;
+/**
+ * Apply blue noise dithering to already-decoded pixel data.
+ *
+ * This is the pure, stateless core of the algorithm: brightness/contrast ->
+ * grayscale -> blue-noise threshold -> colorize -> optional nearest-neighbor
+ * upscale. It has no dependency on File/Image/Video, so it is reused per frame
+ * for video as well as for still images.
+ *
+ * @param imageData Pixel data already downscaled to the dither resolution.
+ * @param target Output dimensions when pixelSize > 1 (nearest-neighbor upscale).
+ */
+export function ditherImageData(
+  imageData: ImageData,
+  noise: NoiseTexture,
+  params: DitherParameters,
+  target?: { width: number; height: number }
+): ImageData {
+  const width = imageData.width;
+  const height = imageData.height;
+  const fg = hexToRgb(params.foreground);
+  const bg = hexToRgb(params.background);
+  const pixelSize = Math.max(1, Math.floor(params.pixelSize));
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Could not get canvas context");
-  }
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, 0, 0, ditherWidth, ditherHeight);
-
-  const width = ditherWidth;
-  const height = ditherHeight;
-
-  // Get image data
-  let imageData = ctx.getImageData(0, 0, width, height);
-
-  // Apply tone adjustments
+  // Apply tone adjustments (mutate in place)
+  let toned = imageData;
   if (params.brightness !== 0) {
-    imageData = applyBrightness(imageData, params.brightness);
+    toned = applyBrightness(toned, params.brightness);
   }
-
   if (params.contrast !== 0) {
-    imageData = applyContrast(imageData, params.contrast);
+    toned = applyContrast(toned, params.contrast);
   }
 
   // Convert to grayscale
   const grayscaleData = new Uint8ClampedArray(width * height);
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    const avg =
-      (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+  for (let i = 0; i < toned.data.length; i += 4) {
+    const avg = (toned.data[i] + toned.data[i + 1] + toned.data[i + 2]) / 3;
     grayscaleData[i / 4] = avg;
   }
 
-  // Apply dithering algorithm (copied from dither.ts:111-138)
+  // Apply dithering algorithm
   const outputData = new Uint8ClampedArray(width * height * 4);
 
   for (let y = 0; y < height; y++) {
@@ -159,8 +111,8 @@ export async function applyDither(
 
   // If pixelSize > 1, upscale using nearest-neighbor to create blocky pixels
   if (pixelSize > 1) {
-    const upscaledWidth = targetWidth;
-    const upscaledHeight = targetHeight;
+    const upscaledWidth = target?.width ?? width * pixelSize;
+    const upscaledHeight = target?.height ?? height * pixelSize;
     const upscaledData = new Uint8ClampedArray(
       upscaledWidth * upscaledHeight * 4
     );
@@ -185,4 +137,67 @@ export async function applyDither(
   }
 
   return new ImageData(outputData, width, height);
+}
+
+export interface DitherScratch {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+}
+
+/**
+ * Create a reusable scratch canvas for the dither downscale step. Passing one
+ * to `ditherDrawable` avoids allocating a canvas per frame during video render.
+ */
+export function createDitherScratch(): DitherScratch {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    throw new Error("Could not get canvas context");
+  }
+  return { canvas, ctx };
+}
+
+/**
+ * Dither any drawable source (image, video frame, bitmap). Downscales the
+ * source to the dither resolution on a canvas, then runs `ditherImageData`.
+ * Reused by both the live video preview loop and the MP4 exporter.
+ */
+export function ditherDrawable(
+  drawable: CanvasImageSource,
+  sourceWidth: number,
+  sourceHeight: number,
+  noise: NoiseTexture,
+  params: DitherParameters,
+  scratch?: DitherScratch
+): ImageData {
+  const target = getTargetDimensions(sourceWidth, sourceHeight, params);
+  const pixelSize = Math.max(1, Math.floor(params.pixelSize));
+  const ditherWidth = Math.max(1, Math.floor(target.width / pixelSize));
+  const ditherHeight = Math.max(1, Math.floor(target.height / pixelSize));
+
+  const work = scratch ?? createDitherScratch();
+  const { canvas, ctx } = work;
+  if (canvas.width !== ditherWidth || canvas.height !== ditherHeight) {
+    canvas.width = ditherWidth;
+    canvas.height = ditherHeight;
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(drawable, 0, 0, ditherWidth, ditherHeight);
+
+  const imageData = ctx.getImageData(0, 0, ditherWidth, ditherHeight);
+  return ditherImageData(imageData, noise, params, target);
+}
+
+/**
+ * Apply blue noise dithering to an image file.
+ */
+export async function applyDither(
+  imageFile: File,
+  noise: NoiseTexture,
+  params: DitherParameters
+): Promise<ImageData> {
+  const img = await loadImage(imageFile);
+  return ditherDrawable(img, img.width, img.height, noise, params);
 }

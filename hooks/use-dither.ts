@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { applyDither } from "@/lib/dither/core";
 import type { DitherParameters } from "@/lib/dither/types";
-import { loadNoiseTexture, NOISE_TEXTURES } from "@/lib/noise/textures";
+import { isVideoFile } from "@/lib/dither/types";
+import { getNoiseTexture } from "@/lib/noise/textures";
 import { useDebounce } from "./use-debounce";
 
 const DEFAULT_PARAMETERS: DitherParameters = {
@@ -54,9 +55,10 @@ export function useDither() {
     loadPlaceholder();
   }, [uploadedImage]);
 
-  // Process image when parameters or uploaded image changes
+  // Process image when parameters or uploaded image changes.
+  // Video files are handled by useVideoDither, so skip them here.
   useEffect(() => {
-    if (!uploadedImage) {
+    if (!uploadedImage || isVideoFile(uploadedImage)) {
       setDitheredImage(null);
       return;
     }
@@ -89,16 +91,8 @@ export function useDither() {
           }));
         }
 
-        // Find noise texture
-        const noiseTexture = NOISE_TEXTURES.find(
-          (t) => t.size === debouncedParams.noiseSize
-        );
-        if (!noiseTexture) {
-          throw new Error("Noise texture not found");
-        }
-
-        // Load noise texture
-        const noise = await loadNoiseTexture(noiseTexture.dataUrl);
+        // Load noise texture (cached per size)
+        const noise = await getNoiseTexture(debouncedParams.noiseSize);
 
         // Apply dithering
         const result = await applyDither(uploadedImage, noise, debouncedParams);

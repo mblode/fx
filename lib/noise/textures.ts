@@ -62,3 +62,23 @@ export function loadNoiseTexture(dataUrl: string): Promise<NoiseTexture> {
     img.src = dataUrl;
   });
 }
+
+// Cache decoded noise textures per size. The texture is static, so it only
+// needs to be decoded once — important now that dithering runs per video frame.
+const noiseCache = new Map<number, Promise<NoiseTexture>>();
+
+/**
+ * Load (and cache) the noise texture matching the given size (64, 128, 256).
+ */
+export function getNoiseTexture(size: number): Promise<NoiseTexture> {
+  const cached = noiseCache.get(size);
+  if (cached) {
+    return cached;
+  }
+
+  const config =
+    NOISE_TEXTURES.find((t) => t.size === size) ?? DEFAULT_NOISE_TEXTURE;
+  const promise = loadNoiseTexture(config.dataUrl);
+  noiseCache.set(size, promise);
+  return promise;
+}
