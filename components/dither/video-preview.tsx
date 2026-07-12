@@ -1,6 +1,6 @@
 "use client";
 
-import { PauseIcon, PlayIcon } from "blode-icons-react";
+import { PauseFilledIcon, PlayFilledIcon } from "blode-icons-react";
 import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -121,9 +121,9 @@ export function VideoPreview({
             variant="outline"
           >
             {isPlaying ? (
-              <PauseIcon className="size-4" />
+              <PauseFilledIcon className="size-4" />
             ) : (
-              <PlayIcon className="size-4" />
+              <PlayFilledIcon className="size-4" />
             )}
           </Button>
           <input

@@ -2,20 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { createDitherScratch, ditherDrawable } from "@/lib/dither/core";
-import type { DitherScratch } from "@/lib/dither/core";
-import type { DitherParameters, MediaKind } from "@/lib/dither/types";
-import {
-  createLiveRecorder,
-  exportDitheredVideoFile,
-} from "@/lib/dither/video-export";
+import type { MediaKind } from "@/lib/dither/types";
+import { createLiveRecorder, exportVideoFile } from "@/lib/dither/video-export";
 import type { LiveRecorder } from "@/lib/dither/video-export";
-import { getNoiseTexture } from "@/lib/noise/textures";
+import type { FrameRenderer } from "@/lib/frame-renderer";
 
-interface UseVideoDitherProps {
+interface UseMediaStudioProps {
   mediaKind: MediaKind;
   file: File | null;
-  parameters: DitherParameters;
+  /** Renders one source frame into the active mode's output ImageData. */
+  renderFrame: FrameRenderer;
   /** Called once when a new source's dimensions become known. */
   onSourceLoaded?: (width: number, height: number) => void;
 }
@@ -25,27 +21,22 @@ interface Dimensions {
   height: number;
 }
 
-export function useVideoDither({
+export function useMediaStudio({
   mediaKind,
   file,
-  parameters,
+  renderFrame,
   onSourceLoaded,
-}: UseVideoDitherProps) {
+}: UseMediaStudioProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scratchRef = useRef<DitherScratch | null>(null);
-  const noiseRef = useRef<{
-    size: number;
-    texture: Awaited<ReturnType<typeof getNoiseTexture>>;
-  } | null>(null);
   const rafRef = useRef<number | null>(null);
   const loopActiveRef = useRef(false);
   const recorderRef = useRef<LiveRecorder | null>(null);
   const recordStartRef = useRef(0);
 
-  // Latest params, read inside the render loop without restarting it.
-  const paramsRef = useRef(parameters);
-  paramsRef.current = parameters;
+  // Latest frame renderer, read inside the loop without restarting it.
+  const renderFrameRef = useRef(renderFrame);
+  renderFrameRef.current = renderFrame;
 
   const onSourceLoadedRef = useRef(onSourceLoaded);
   onSourceLoadedRef.current = onSourceLoaded;
@@ -67,54 +58,35 @@ export function useVideoDither({
 
   const isActive = mediaKind === "video" || mediaKind === "webcam";
 
-  // Keep the noise texture current with the selected size.
-  useEffect(() => {
-    let cancelled = false;
-    getNoiseTexture(parameters.noiseSize).then((texture) => {
-      if (!cancelled) {
-        noiseRef.current = { size: parameters.noiseSize, texture };
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [parameters.noiseSize]);
-
-  const renderFrame = useCallback(() => {
+  const renderFrameToCanvas = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    const noise = noiseRef.current?.texture;
 
-    if (video && canvas && noise && video.readyState >= 2) {
-      if (!scratchRef.current) {
-        scratchRef.current = createDitherScratch();
-      }
-      const dithered = ditherDrawable(
-        video,
-        video.videoWidth,
-        video.videoHeight,
-        noise,
-        paramsRef.current,
-        scratchRef.current
+    if (!(video && canvas && video.readyState >= 2)) {
+      return;
+    }
+    const rendered = renderFrameRef.current(
+      video,
+      video.videoWidth,
+      video.videoHeight
+    );
+    if (!rendered) {
+      return;
+    }
+
+    if (canvas.width !== rendered.width || canvas.height !== rendered.height) {
+      canvas.width = rendered.width;
+      canvas.height = rendered.height;
+      setDimensions({ height: rendered.height, width: rendered.width });
+    }
+    const ctx = canvas.getContext("2d");
+    ctx?.putImageData(rendered, 0, 0);
+
+    if (recorderRef.current) {
+      recorderRef.current.addFrame(
+        rendered,
+        performance.now() - recordStartRef.current
       );
-
-      if (
-        canvas.width !== dithered.width ||
-        canvas.height !== dithered.height
-      ) {
-        canvas.width = dithered.width;
-        canvas.height = dithered.height;
-        setDimensions({ height: dithered.height, width: dithered.width });
-      }
-      const ctx = canvas.getContext("2d");
-      ctx?.putImageData(dithered, 0, 0);
-
-      if (recorderRef.current) {
-        recorderRef.current.addFrame(
-          dithered,
-          performance.now() - recordStartRef.current
-        );
-      }
     }
   }, []);
 
@@ -139,11 +111,11 @@ export function useVideoDither({
       if (!loopActiveRef.current) {
         return;
       }
-      renderFrame();
+      renderFrameToCanvas();
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-  }, [renderFrame]);
+  }, [renderFrameToCanvas]);
 
   // Set up / tear down the source when the media kind or file changes.
   useEffect(() => {
@@ -283,8 +255,7 @@ export function useVideoDither({
   // Export the loaded file video to MP4.
   const exportMp4 = useCallback(async (): Promise<Blob | null> => {
     const video = videoRef.current;
-    const noise = noiseRef.current?.texture;
-    if (!(video && noise && file)) {
+    if (!(video && file)) {
       return null;
     }
 
@@ -297,11 +268,10 @@ export function useVideoDither({
     video.pause();
 
     try {
-      const blob = await exportDitheredVideoFile({
+      const blob = await exportVideoFile({
         file,
-        noise,
         onProgress: setExportProgress,
-        params: paramsRef.current,
+        renderFrame: renderFrameRef.current,
         video,
       });
       return blob;

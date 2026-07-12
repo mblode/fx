@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   category: "technology",
   creator: "Matthew Blode",
   description:
-    "Apply professional blue noise dithering to your images online. Free, fast, client-side image processing tool with real-time preview. Convert images to artistic halftone patterns.",
+    "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix online. Free, fast, client-side image processing with real-time preview.",
   icons: {
     apple: [{ url: "/apple-icon.png" }],
     icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
@@ -27,12 +27,14 @@ export const metadata: Metadata = {
   keywords: [
     "blue noise",
     "dithering",
+    "ascii art",
+    "image to ascii",
+    "ascii converter",
+    "led matrix",
     "image processing",
     "image converter",
     "halftone",
-    "stippling",
     "ordered dithering",
-    "image dither tool",
     "online image processor",
     "blue noise algorithm",
   ],
@@ -40,18 +42,18 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://blue-noise.blode.co"),
   openGraph: {
     description:
-      "Apply professional blue noise dithering to your images online. Free, fast, and client-side image processing tool with real-time preview.",
+      "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix online. Free, fast, client-side image processing with real-time preview.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Blue Noise Dither - Image Processing Tool",
+        alt: "Blue Noise, ASCII & LED image tools",
       },
     ],
     locale: "en_US",
     siteName: "Blue Noise Dither",
-    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+    title: "Blue Noise, ASCII & LED - Image Art Tools",
     type: "website",
     url: "https://blue-noise.blode.co",
   },
@@ -67,14 +69,14 @@ export const metadata: Metadata = {
     },
     index: true,
   },
-  title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+  title: "Blue Noise, ASCII & LED - Image Art Tools",
   twitter: {
     card: "summary_large_image",
     creator: "@mattblode",
     description:
-      "Apply professional blue noise dithering to your images online. Free, fast, client-side processing.",
+      "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side processing.",
     images: ["/og-image.png"],
-    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+    title: "Blue Noise, ASCII & LED - Image Art Tools",
   },
   verification: {
     google: "mFwyBIbXTaKK4uF_NA0MzVWFyY40hPgBjFObg3rje04",
@@ -108,9 +110,10 @@ const structuredData = {
     "Professional blue noise dithering application for high-quality image processing. Apply ordered dithering with real-time preview.",
   featureList: [
     "Blue noise dithering",
+    "ASCII art rendering",
+    "LED dot-matrix rendering",
     "Real-time preview",
     "Client-side processing",
-    "Multiple noise texture sizes",
     "Brightness adjustment",
     "Contrast adjustment",
     "Custom color selection",

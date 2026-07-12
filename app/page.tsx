@@ -1,19 +1,30 @@
 "use client";
 
 import { CloudUploadIcon } from "blode-icons-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { AsciiControlsPanel } from "@/components/ascii/controls-panel";
 import { CanvasPreview } from "@/components/dither/canvas-preview";
 import { ControlsPanel } from "@/components/dither/controls-panel";
 import { HeaderActions } from "@/components/dither/header-actions";
 import { VideoPreview } from "@/components/dither/video-preview";
+import { ModeSwitcher } from "@/components/mode-switcher";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { useAscii } from "@/hooks/use-ascii";
 import { useDither } from "@/hooks/use-dither";
-import { useVideoDither } from "@/hooks/use-video-dither";
-import type { MediaKind } from "@/lib/dither/types";
+import { useMediaStudio } from "@/hooks/use-media-studio";
+import { useUpload } from "@/hooks/use-upload";
+import type { MediaKind, NoiseTexture } from "@/lib/dither/types";
 import { isVideoFile } from "@/lib/dither/types";
+import {
+  createAsciiFrameRenderer,
+  createDitherFrameRenderer,
+} from "@/lib/frame-renderer";
+import { MODE_FILENAME_SUFFIX, modeLabel } from "@/lib/mode";
+import type { RenderMode } from "@/lib/mode";
+import { getNoiseTexture } from "@/lib/noise/textures";
 import { cn } from "@/lib/utils";
 
 const EXT_REGEX = /\.[^/.]+$/;
@@ -27,9 +38,13 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function ditheredFilename(name: string | undefined, ext: string): string {
+function outputFilename(
+  name: string | undefined,
+  suffix: string,
+  ext: string
+): string {
   const base = name?.replace(EXT_REGEX, "");
-  return base ? `${base}-dithered.${ext}` : `dithered.${ext}`;
+  return base ? `${base}-${suffix}.${ext}` : `${suffix}.${ext}`;
 }
 
 function resolveMediaKind(webcamActive: boolean, file: File | null): MediaKind {
@@ -42,41 +57,97 @@ function resolveMediaKind(webcamActive: boolean, file: File | null): MediaKind {
   return "image";
 }
 
-export default function DitherPage() {
+export default function StudioPage() {
+  const [mode, setMode] = useState<RenderMode>("blue-noise");
   const {
     uploadedImage,
-    ditheredImage,
-    isProcessing,
     isLoadingPlaceholder,
-    parameters,
-    originalDimensions,
     setUploadedImage,
-    updateParameters,
-  } = useDither();
+    webcamActive,
+    setWebcamActive,
+  } = useUpload();
 
   const [showOriginal, setShowOriginal] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [webcamActive, setWebcamActive] = useState(false);
+
+  const isBlueNoise = mode === "blue-noise";
 
   const mediaKind = resolveMediaKind(webcamActive, uploadedImage);
   const isVideoMode = mediaKind !== "image";
 
+  // Still-image rendering runs through the per-mode hooks; video/webcam is
+  // handled by the shared media studio below. Each still hook is disabled when
+  // its mode isn't active or when the source is a video.
+  const stillImageEnabled = !isVideoMode;
+  const asciiSourceFile =
+    !isBlueNoise && !isVideoFile(uploadedImage) ? uploadedImage : null;
+
+  const dither = useDither({
+    enabled: isBlueNoise && stillImageEnabled,
+    uploadedImage,
+  });
+  const ascii = useAscii({
+    enabled: !isBlueNoise && stillImageEnabled,
+    ledMode: mode === "led",
+    uploadedImage: asciiSourceFile,
+  });
+
   // Auto-scale a newly loaded video the same way images are scaled.
   const onSourceLoaded = useCallback(
     (width: number) => {
-      updateParameters({
+      dither.updateParameters({
         maxWidth: null,
         pixelSize: Math.max(1, Math.round(width / 512)),
       });
     },
-    [updateParameters]
+    [dither.updateParameters]
   );
 
-  const video = useVideoDither({
+  // Latest parameters/mode, read inside the render loop without restarting it.
+  const noiseRef = useRef<NoiseTexture | null>(null);
+  const ditherParamsRef = useRef(dither.parameters);
+  ditherParamsRef.current = dither.parameters;
+  const asciiParamsRef = useRef(ascii.parameters);
+  asciiParamsRef.current = ascii.parameters;
+  const ledModeRef = useRef(mode === "led");
+  ledModeRef.current = mode === "led";
+
+  // Keep the noise texture ready for the blue-noise video renderer.
+  useEffect(() => {
+    let cancelled = false;
+    getNoiseTexture(dither.parameters.noiseSize).then((texture) => {
+      if (!cancelled) {
+        noiseRef.current = texture;
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dither.parameters.noiseSize]);
+
+  // Stable per-mode frame renderers (they read the latest params via refs).
+  const ditherRenderer = useMemo(
+    () =>
+      createDitherFrameRenderer({
+        getNoise: () => noiseRef.current,
+        getParams: () => ditherParamsRef.current,
+      }),
+    []
+  );
+  const asciiRenderer = useMemo(
+    () =>
+      createAsciiFrameRenderer({
+        getLedMode: () => ledModeRef.current,
+        getParams: () => asciiParamsRef.current,
+      }),
+    []
+  );
+
+  const video = useMediaStudio({
     file: mediaKind === "video" ? uploadedImage : null,
     mediaKind,
     onSourceLoaded,
-    parameters,
+    renderFrame: isBlueNoise ? ditherRenderer : asciiRenderer,
   });
 
   const onDrop = useCallback(
@@ -87,7 +158,7 @@ export default function DitherPage() {
         setShowOriginal(false);
       }
     },
-    [setUploadedImage]
+    [setUploadedImage, setWebcamActive]
   );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
@@ -98,30 +169,46 @@ export default function DitherPage() {
     onDrop,
   });
 
+  const handleModeChange = (next: RenderMode) => {
+    setShowOriginal(false);
+    setMode(next);
+  };
+
   const flashSuccess = () => {
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 2000);
   };
 
+  // The output shown in the preview: dither in blue-noise mode, ascii otherwise.
+  const activeDithered = isBlueNoise
+    ? dither.ditheredImage
+    : ascii.ditheredImage;
+  const activeProcessing = isBlueNoise
+    ? dither.isProcessing
+    : ascii.isProcessing;
+
   const handleDownloadImage = () => {
-    if (!ditheredImage) {
+    if (!activeDithered) {
       return;
     }
 
     const canvas = document.createElement("canvas");
-    canvas.width = ditheredImage.width;
-    canvas.height = ditheredImage.height;
+    canvas.width = activeDithered.width;
+    canvas.height = activeDithered.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       return;
     }
-    ctx.putImageData(ditheredImage, 0, 0);
+    ctx.putImageData(activeDithered, 0, 0);
 
     canvas.toBlob((blob) => {
       if (!blob) {
         return;
       }
-      downloadBlob(blob, ditheredFilename(uploadedImage?.name, "png"));
+      downloadBlob(
+        blob,
+        outputFilename(uploadedImage?.name, MODE_FILENAME_SUFFIX[mode], "png")
+      );
       flashSuccess();
     }, "image/png");
   };
@@ -129,7 +216,10 @@ export default function DitherPage() {
   const handleExportVideo = async () => {
     const blob = await video.exportMp4();
     if (blob) {
-      downloadBlob(blob, ditheredFilename(uploadedImage?.name, "mp4"));
+      downloadBlob(
+        blob,
+        outputFilename(uploadedImage?.name, MODE_FILENAME_SUFFIX[mode], "mp4")
+      );
       flashSuccess();
     }
   };
@@ -138,7 +228,7 @@ export default function DitherPage() {
     if (video.isRecording) {
       const blob = await video.stopRecording();
       if (blob) {
-        downloadBlob(blob, "webcam-dithered.mp4");
+        downloadBlob(blob, `webcam-${MODE_FILENAME_SUFFIX[mode]}.mp4`);
         flashSuccess();
       }
     } else {
@@ -151,15 +241,20 @@ export default function DitherPage() {
     setWebcamActive((prev) => !prev);
   };
 
+  // Controls are disabled until there's a usable source.
   const controlsDisabled = !(uploadedImage || webcamActive);
-  const dimensionsForControls = isVideoMode
-    ? video.sourceDimensions
-    : originalDimensions;
+
+  const dimensionsForControls = (() => {
+    if (isVideoMode) {
+      return video.sourceDimensions;
+    }
+    return isBlueNoise ? dither.originalDimensions : ascii.renderDimensions;
+  })();
 
   const headerActions = (
     <HeaderActions
       downloadSuccess={downloadSuccess}
-      hasDitheredImage={ditheredImage !== null}
+      hasDitheredImage={activeDithered !== null}
       hasUpload={uploadedImage !== null}
       isExporting={video.isExporting}
       isRecording={video.isRecording}
@@ -185,15 +280,24 @@ export default function DitherPage() {
         Skip to main content
       </a>
       <AppSidebar
-        onParametersChange={updateParameters}
+        asciiParameters={ascii.parameters}
+        disabled={controlsDisabled}
+        ditherParameters={dither.parameters}
+        mode={mode}
+        onAsciiParametersChange={ascii.updateParameters}
+        onDitherParametersChange={dither.updateParameters}
+        onModeChange={handleModeChange}
         originalDimensions={dimensionsForControls}
-        parameters={parameters}
-        uploadedImage={uploadedImage}
       />
       <SidebarInset className="flex flex-col">
         {/* Mobile header */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
-          <p className="flex-1 font-semibold text-sm">Blue noise</p>
+          <ModeSwitcher
+            className="h-8"
+            mode={mode}
+            onModeChange={handleModeChange}
+          />
+          <div className="flex-1" />
           {headerActions}
         </header>
 
@@ -232,9 +336,7 @@ export default function DitherPage() {
               className="flex w-full flex-col items-center justify-start gap-6 p-4 md:flex-1 md:items-center md:justify-center"
               id="main-content"
             >
-              <h1 className="sr-only">
-                Blue Noise Dither - Professional Image & Video Dithering Tool
-              </h1>
+              <h1 className="sr-only">{modeLabel(mode)} image tool</h1>
               {isVideoMode ? (
                 <VideoPreview
                   canvasRef={video.canvasRef}
@@ -254,12 +356,12 @@ export default function DitherPage() {
                 />
               ) : (
                 <CanvasPreview
-                  ditheredImage={ditheredImage}
+                  ditheredImage={activeDithered}
                   isLoadingPlaceholder={isLoadingPlaceholder}
-                  isProcessing={isProcessing}
+                  isProcessing={activeProcessing}
                   onBrowse={open}
                   showOriginal={showOriginal}
-                  uploadedImage={uploadedImage}
+                  uploadedImage={isBlueNoise ? uploadedImage : asciiSourceFile}
                 />
               )}
             </main>
@@ -267,12 +369,22 @@ export default function DitherPage() {
 
           <section className="w-full border-border border-t bg-background px-4 py-6 md:hidden">
             <div className="mx-auto w-full max-w-2xl">
-              <ControlsPanel
-                disabled={controlsDisabled}
-                onParametersChange={updateParameters}
-                originalDimensions={dimensionsForControls}
-                parameters={parameters}
-              />
+              {isBlueNoise ? (
+                <ControlsPanel
+                  disabled={controlsDisabled}
+                  onParametersChange={dither.updateParameters}
+                  originalDimensions={dimensionsForControls}
+                  parameters={dither.parameters}
+                />
+              ) : (
+                <AsciiControlsPanel
+                  disabled={controlsDisabled}
+                  ledMode={mode === "led"}
+                  onParametersChange={ascii.updateParameters}
+                  parameters={ascii.parameters}
+                  renderDimensions={dimensionsForControls}
+                />
+              )}
             </div>
           </section>
         </div>

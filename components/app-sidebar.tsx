@@ -1,6 +1,8 @@
 "use client";
 
+import { AsciiControlsPanel } from "@/components/ascii/controls-panel";
 import { ControlsPanel } from "@/components/dither/controls-panel";
+import { ModeSwitcher } from "@/components/mode-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -9,43 +11,64 @@ import {
   SidebarGroupContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import type { AsciiParameters } from "@/hooks/use-ascii";
 import type { DitherParameters } from "@/lib/dither/types";
+import type { RenderMode } from "@/lib/mode";
 
 interface AppSidebarProps {
-  uploadedImage: File | null;
-  parameters: DitherParameters;
+  mode: RenderMode;
+  onModeChange: (mode: RenderMode) => void;
+  disabled: boolean;
   originalDimensions?: { width: number; height: number } | null;
-  onParametersChange: (params: Partial<DitherParameters>) => void;
+  ditherParameters: DitherParameters;
+  onDitherParametersChange: (params: Partial<DitherParameters>) => void;
+  asciiParameters: AsciiParameters;
+  onAsciiParametersChange: (params: Partial<AsciiParameters>) => void;
 }
 
+const MODE_DESCRIPTIONS: Record<RenderMode, string> = {
+  "blue-noise": "Apply high-quality blue noise dithering to your images",
+  ascii: "Turn your images into glyph-based ASCII art",
+  led: "Render your images as a red-to-white LED dot matrix",
+};
+
 export function AppSidebar({
-  uploadedImage,
-  parameters,
+  mode,
+  onModeChange,
+  disabled,
   originalDimensions,
-  onParametersChange,
+  ditherParameters,
+  onDitherParametersChange,
+  asciiParameters,
+  onAsciiParametersChange,
 }: AppSidebarProps) {
   return (
     <Sidebar mobileVariant="none" variant="inset">
-      <SidebarHeader className="hidden px-2 md:flex">
-        <p
-          className="font-bold text-xl tracking-tight md:text-2xl"
-          style={{ textWrap: "balance" }}
-        >
-          Blue noise
-        </p>
+      <SidebarHeader className="hidden gap-3 px-2 md:flex">
+        <ModeSwitcher mode={mode} onModeChange={onModeChange} />
         <p className="text-sm leading-[1.6]" style={{ textWrap: "pretty" }}>
-          Apply high-quality blue noise dithering to your images
+          {MODE_DESCRIPTIONS[mode]}
         </p>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="py-3">
-            <ControlsPanel
-              disabled={!uploadedImage}
-              onParametersChange={onParametersChange}
-              originalDimensions={originalDimensions}
-              parameters={parameters}
-            />
+            {mode === "blue-noise" ? (
+              <ControlsPanel
+                disabled={disabled}
+                onParametersChange={onDitherParametersChange}
+                originalDimensions={originalDimensions}
+                parameters={ditherParameters}
+              />
+            ) : (
+              <AsciiControlsPanel
+                disabled={disabled}
+                ledMode={mode === "led"}
+                onParametersChange={onAsciiParametersChange}
+                parameters={asciiParameters}
+                renderDimensions={originalDimensions}
+              />
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

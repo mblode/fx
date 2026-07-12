@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { applyDither } from "@/lib/dither/core";
 import type { DitherParameters } from "@/lib/dither/types";
@@ -19,8 +19,14 @@ const DEFAULT_PARAMETERS: DitherParameters = {
   pixelSize: 1,
 };
 
-export function useDither() {
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+interface UseDitherProps {
+  /** The shared uploaded file, owned by useUpload. */
+  uploadedImage: File | null;
+  /** When false, the render mode is inactive and processing is skipped. */
+  enabled: boolean;
+}
+
+export function useDither({ uploadedImage, enabled }: UseDitherProps) {
   const [ditheredImage, setDitheredImage] = useState<ImageData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [parameters, setParameters] =
@@ -32,35 +38,10 @@ export function useDither() {
 
   const debouncedParams = useDebounce(parameters, 100);
 
-  const placeholderAttempted = useRef(false);
-  const [isLoadingPlaceholder, setIsLoadingPlaceholder] = useState(true);
-
-  useEffect(() => {
-    if (placeholderAttempted.current || uploadedImage) {
-      setIsLoadingPlaceholder(false);
-      return;
-    }
-    placeholderAttempted.current = true;
-
-    const loadPlaceholder = async () => {
-      try {
-        const response = await fetch("/placeholder.jpg");
-        const blob = await response.blob();
-        const file = new File([blob], "placeholder.jpg", { type: blob.type });
-        setUploadedImage(file);
-      } catch {
-        // Silent fallback to empty state
-      } finally {
-        setIsLoadingPlaceholder(false);
-      }
-    };
-    loadPlaceholder();
-  }, [uploadedImage]);
-
   // Process image when parameters or uploaded image changes.
   // Video files are handled by useVideoDither, so skip them here.
   useEffect(() => {
-    if (!uploadedImage || isVideoFile(uploadedImage)) {
+    if (!(enabled && uploadedImage) || isVideoFile(uploadedImage)) {
       setDitheredImage(null);
       return;
     }
@@ -108,7 +89,7 @@ export function useDither() {
     };
 
     processDither();
-  }, [uploadedImage, debouncedParams, originalDimensions]);
+  }, [enabled, uploadedImage, debouncedParams, originalDimensions]);
 
   const updateParameters = useCallback((updates: Partial<DitherParameters>) => {
     setParameters((prev) => ({ ...prev, ...updates }));
@@ -116,12 +97,9 @@ export function useDither() {
 
   return {
     ditheredImage,
-    isLoadingPlaceholder,
     isProcessing,
     originalDimensions,
     parameters,
-    setUploadedImage,
     updateParameters,
-    uploadedImage,
   };
 }

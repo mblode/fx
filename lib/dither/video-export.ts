@@ -1,7 +1,6 @@
 import { ArrayBufferTarget, Muxer } from "mp4-muxer";
 
-import { createDitherScratch, ditherDrawable } from "./core";
-import type { DitherParameters, NoiseTexture } from "./types";
+import type { FrameRenderer } from "@/lib/frame-renderer";
 
 // H.264 requires even dimensions.
 function toEven(n: number): number {
@@ -184,8 +183,8 @@ async function decodeAudio(file: File): Promise<AudioBuffer | null> {
 export interface ExportFileOptions {
   video: HTMLVideoElement;
   file: File | null;
-  noise: NoiseTexture;
-  params: DitherParameters;
+  /** Renders one source frame into the current mode's output ImageData. */
+  renderFrame: FrameRenderer;
   fps?: number;
   onProgress?: (fraction: number) => void;
   signal?: AbortSignal;
@@ -224,13 +223,12 @@ function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
 }
 
 /**
- * Export a dithered MP4 from a source video element by seeking through it frame
+ * Export a rendered MP4 from a source video element by seeking through it frame
  * by frame and encoding each frame. Original audio is re-encoded and muxed in.
+ * The per-frame rendering (dither, ASCII, LED, …) is supplied by `renderFrame`.
  */
-export async function exportDitheredVideoFile(
-  opts: ExportFileOptions
-): Promise<Blob> {
-  const { video, file, noise, params, onProgress, signal } = opts;
+export async function exportVideoFile(opts: ExportFileOptions): Promise<Blob> {
+  const { video, file, renderFrame, onProgress, signal } = opts;
   const fps = opts.fps ?? 30;
 
   const sourceWidth = video.videoWidth;
@@ -239,14 +237,11 @@ export async function exportDitheredVideoFile(
     throw new Error("Video has no dimensions yet");
   }
 
-  // Dimensions of one dithered frame (drives the output canvas size).
-  const sample = ditherDrawable(
-    video,
-    sourceWidth,
-    sourceHeight,
-    noise,
-    params
-  );
+  // Dimensions of one rendered frame (drives the output canvas size).
+  const sample = renderFrame(video, sourceWidth, sourceHeight);
+  if (!sample) {
+    throw new Error("Renderer is not ready");
+  }
 
   const audioBuffer = file ? await decodeAudio(file) : null;
 
@@ -267,7 +262,6 @@ export async function exportDitheredVideoFile(
     await encodeAudioFromBuffer(session.muxer, audioBuffer);
   }
 
-  const scratch = createDitherScratch();
   const duration = video.duration || 0;
   const frameDuration = 1 / fps;
   const frameDurationUs = Math.round(1_000_000 / fps);
@@ -281,15 +275,11 @@ export async function exportDitheredVideoFile(
     }
     await seekTo(video, time);
 
-    const dithered = ditherDrawable(
-      video,
-      sourceWidth,
-      sourceHeight,
-      noise,
-      params,
-      scratch
-    );
-    paintFrame(session, dithered);
+    const rendered = renderFrame(video, sourceWidth, sourceHeight);
+    if (!rendered) {
+      continue;
+    }
+    paintFrame(session, rendered);
 
     const frame = new VideoFrame(session.outCanvas, {
       duration: frameDurationUs,
