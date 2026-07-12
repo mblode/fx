@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { applyDither } from "@/lib/dither/core";
 import type { DitherParameters } from "@/lib/dither/types";
 import { isVideoFile } from "@/lib/dither/types";
 import { getNoiseTexture } from "@/lib/noise/textures";
+
 import { useDebounce } from "./use-debounce";
 
 const DEFAULT_PARAMETERS: DitherParameters = {
-  foreground: "#000000",
   background: "#ffffff",
-  contrast: 0,
   brightness: 0,
-  noiseSize: 256,
+  contrast: 0,
+  foreground: "#000000",
   maxWidth: null,
+  noiseSize: 256,
   pixelSize: 1,
 };
 
@@ -80,14 +82,14 @@ export function useDither() {
 
         // Set original dimensions and calculate pixelSize if this is a new image
         if (!originalDimensions || originalDimensions.width !== img.width) {
-          setOriginalDimensions({ width: img.width, height: img.height });
+          setOriginalDimensions({ height: img.height, width: img.width });
 
           // Calculate pixelSize as originalWidth / 512 and reset maxWidth to use original size
           const calculatedPixelSize = Math.max(1, Math.round(img.width / 512));
           setParameters((prev) => ({
             ...prev,
-            pixelSize: calculatedPixelSize,
             maxWidth: null,
+            pixelSize: calculatedPixelSize,
           }));
         }
 
@@ -113,13 +115,13 @@ export function useDither() {
   }, []);
 
   return {
-    uploadedImage,
     ditheredImage,
-    isProcessing,
     isLoadingPlaceholder,
-    parameters,
+    isProcessing,
     originalDimensions,
+    parameters,
     setUploadedImage,
     updateParameters,
+    uploadedImage,
   };
 }

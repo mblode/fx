@@ -1,17 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  createDitherScratch,
-  type DitherScratch,
-  ditherDrawable,
-} from "@/lib/dither/core";
+
+import { createDitherScratch, ditherDrawable } from "@/lib/dither/core";
+import type { DitherScratch } from "@/lib/dither/core";
 import type { DitherParameters, MediaKind } from "@/lib/dither/types";
 import {
   createLiveRecorder,
   exportDitheredVideoFile,
-  type LiveRecorder,
 } from "@/lib/dither/video-export";
+import type { LiveRecorder } from "@/lib/dither/video-export";
 import { getNoiseTexture } from "@/lib/noise/textures";
 
 interface UseVideoDitherProps {
@@ -106,7 +104,7 @@ export function useVideoDither({
       ) {
         canvas.width = dithered.width;
         canvas.height = dithered.height;
-        setDimensions({ width: dithered.width, height: dithered.height });
+        setDimensions({ height: dithered.height, width: dithered.width });
       }
       const ctx = canvas.getContext("2d");
       ctx?.putImageData(dithered, 0, 0);
@@ -169,8 +167,8 @@ export function useVideoDither({
     const onLoadedMetadata = () => {
       setDimensions(null);
       setSourceDimensions({
-        width: video.videoWidth,
         height: video.videoHeight,
+        width: video.videoWidth,
       });
       setDuration(video.duration || 0);
       setIsReady(true);
@@ -192,7 +190,7 @@ export function useVideoDither({
       video.load();
     } else if (mediaKind === "webcam") {
       navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
+        .getUserMedia({ audio: true, video: true })
         .then((s) => {
           if (cancelled) {
             for (const t of s.getTracks()) {
@@ -300,16 +298,16 @@ export function useVideoDither({
 
     try {
       const blob = await exportDitheredVideoFile({
-        video,
         file,
         noise,
-        params: paramsRef.current,
         onProgress: setExportProgress,
+        params: paramsRef.current,
+        video,
       });
       return blob;
-    } catch (err) {
+    } catch (error) {
       setExportError(
-        err instanceof Error ? err.message : "Video export failed."
+        error instanceof Error ? error.message : "Video export failed."
       );
       return null;
     } finally {
@@ -334,15 +332,15 @@ export function useVideoDither({
     setExportError(null);
     try {
       recorderRef.current = await createLiveRecorder({
-        width: dimensions.width,
-        height: dimensions.height,
         audioTrack,
+        height: dimensions.height,
+        width: dimensions.width,
       });
       recordStartRef.current = performance.now();
       setIsRecording(true);
-    } catch (err) {
+    } catch (error) {
       setExportError(
-        err instanceof Error ? err.message : "Recording failed to start."
+        error instanceof Error ? error.message : "Recording failed to start."
       );
     }
   }, [dimensions]);
@@ -358,25 +356,25 @@ export function useVideoDither({
   }, []);
 
   return {
-    videoRef,
     canvasRef,
-    dimensions,
-    sourceDimensions,
-    isPlaying,
     currentTime,
+    dimensions,
     duration,
-    isReady,
     error,
-    isExporting,
-    exportProgress,
-    isRecording,
     exportError,
-    play,
-    pause,
-    togglePlay,
-    seek,
     exportMp4,
+    exportProgress,
+    isExporting,
+    isPlaying,
+    isReady,
+    isRecording,
+    pause,
+    play,
+    seek,
+    sourceDimensions,
     startRecording,
     stopRecording,
+    togglePlay,
+    videoRef,
   };
 }

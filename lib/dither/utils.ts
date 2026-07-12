@@ -13,9 +13,9 @@ export function hexToRgb(hex: string): RGB {
     throw new Error(`Invalid hex color: ${hex}`);
   }
   return {
-    r: Number.parseInt(result[1], 16),
-    g: Number.parseInt(result[2], 16),
     b: Number.parseInt(result[3], 16),
+    g: Number.parseInt(result[2], 16),
+    r: Number.parseInt(result[1], 16),
   };
 }
 
@@ -42,7 +42,7 @@ export function applyContrast(
 
   const amount = 1 + clampedContrast / 100;
   const midpoint = 128;
-  const data = imageData.data;
+  const { data } = imageData;
 
   for (let i = 0; i < data.length; i += 4) {
     data[i] = clampByte(amount * (data[i] - midpoint) + midpoint);
@@ -67,7 +67,7 @@ export function applyBrightness(
   }
 
   const amount = 1 + clampedBrightness / 100;
-  const data = imageData.data;
+  const { data } = imageData;
 
   for (let i = 0; i < data.length; i += 4) {
     data[i] = clampByte(data[i] * amount);

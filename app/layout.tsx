@@ -1,14 +1,29 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
+
 import { CraftedBy } from "@/components/crafted-by";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://blue-noise.blode.co"),
-  title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+  alternates: {
+    canonical: "/",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Blue noise",
+  },
+  authors: [{ name: "Matthew Blode", url: "https://matthewblode.com" }],
+  category: "technology",
+  creator: "Matthew Blode",
   description:
     "Apply professional blue noise dithering to your images online. Free, fast, client-side image processing tool with real-time preview. Convert images to artistic halftone patterns.",
+  icons: {
+    apple: [{ url: "/apple-icon.png" }],
+    icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
+  },
   keywords: [
     "blue noise",
     "dithering",
@@ -21,20 +36,11 @@ export const metadata: Metadata = {
     "online image processor",
     "blue noise algorithm",
   ],
-  authors: [{ name: "Matthew Blode", url: "https://matthewblode.com" }],
-  creator: "Matthew Blode",
-  publisher: "Matthew Blode",
-  alternates: {
-    canonical: "/",
-  },
+  manifest: "/manifest.json",
+  metadataBase: new URL("https://blue-noise.blode.co"),
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://blue-noise.blode.co",
-    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
     description:
       "Apply professional blue noise dithering to your images online. Free, fast, and client-side image processing tool with real-time preview.",
-    siteName: "Blue Noise Dither",
     images: [
       {
         url: "/og-image.png",
@@ -43,69 +49,63 @@ export const metadata: Metadata = {
         alt: "Blue Noise Dither - Image Processing Tool",
       },
     ],
+    locale: "en_US",
+    siteName: "Blue Noise Dither",
+    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+    type: "website",
+    url: "https://blue-noise.blode.co",
   },
+  publisher: "Matthew Blode",
+  robots: {
+    follow: true,
+    googleBot: {
+      follow: true,
+      index: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+    index: true,
+  },
+  title: "Blue Noise Dither - High-Quality Image Dithering Tool",
   twitter: {
     card: "summary_large_image",
-    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
+    creator: "@mattblode",
     description:
       "Apply professional blue noise dithering to your images online. Free, fast, client-side processing.",
     images: ["/og-image.png"],
-    creator: "@mattblode",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  manifest: "/manifest.json",
-  icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png" }],
+    title: "Blue Noise Dither - High-Quality Image Dithering Tool",
   },
   verification: {
     google: "mFwyBIbXTaKK4uF_NA0MzVWFyY40hPgBjFObg3rje04",
   },
-  category: "technology",
-  appleWebApp: {
-    capable: true,
-    title: "Blue noise",
-    statusBarStyle: "default",
-  },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
   initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "oklch(1 0 0)" },
     { media: "(prefers-color-scheme: dark)", color: "oklch(0.145 0 0)" },
   ],
+  width: "device-width",
 };
 
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Blue Noise Dither",
   alternateName: "Blue Noise Image Dithering Tool",
-  description:
-    "Professional blue noise dithering application for high-quality image processing. Apply ordered dithering with real-time preview.",
-  url: "https://blue-noise.blode.co",
   applicationCategory: "MultimediaApplication",
-  operatingSystem: "Web Browser",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
+  author: {
+    "@type": "Person",
+    email: "m@blode.co",
+    name: "Matthew Blode",
   },
   browserRequirements:
     "Requires JavaScript. Modern browser with Canvas API support.",
-  screenshot: "https://blue-noise.blode.co/og-image.png",
+  dateModified: "2026-01-14",
+  datePublished: "2026-01-14",
+  description:
+    "Professional blue noise dithering application for high-quality image processing. Apply ordered dithering with real-time preview.",
   featureList: [
     "Blue noise dithering",
     "Real-time preview",
@@ -116,13 +116,15 @@ const structuredData = {
     "Custom color selection",
     "Image resize options",
   ],
-  author: {
-    "@type": "Person",
-    name: "Matthew Blode",
-    email: "m@blode.co",
+  name: "Blue Noise Dither",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
   },
-  datePublished: "2026-01-14",
-  dateModified: "2026-01-14",
+  operatingSystem: "Web Browser",
+  screenshot: "https://blue-noise.blode.co/og-image.png",
+  url: "https://blue-noise.blode.co",
 };
 
 export default function RootLayout({

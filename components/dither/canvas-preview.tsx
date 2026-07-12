@@ -3,6 +3,7 @@
 import { Images1Icon } from "blode-icons-react";
 import type { MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { ImageComparison } from "@/components/ui/image-comparison";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -42,13 +43,14 @@ export function CanvasPreview({
     setIsHolding(false);
   }, []);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (holdTimerRef.current) {
         clearTimeout(holdTimerRef.current);
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   const effectiveShowOriginal = showOriginal || isHolding;
 
@@ -59,7 +61,7 @@ export function CanvasPreview({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ditheredImageUrl, setDitheredImageUrl] = useState<string | null>(null);
   const comparisonDimensions = ditheredImage
-    ? { width: ditheredImage.width, height: ditheredImage.height }
+    ? { height: ditheredImage.height, width: ditheredImage.width }
     : null;
 
   // Convert uploaded image to blob URL
@@ -88,13 +90,14 @@ export function CanvasPreview({
   }, [ditheredImage]);
 
   // Cleanup blob URLs on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (originalImageUrl) {
         URL.revokeObjectURL(originalImageUrl);
       }
-    };
-  }, [originalImageUrl]);
+    },
+    [originalImageUrl]
+  );
 
   if (!uploadedImage) {
     if (isLoadingPlaceholder) {
