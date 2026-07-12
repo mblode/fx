@@ -8,6 +8,7 @@ import {
   DotGrid3x3Icon,
 } from "blode-icons-react";
 import { useState } from "react";
+
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -212,7 +213,7 @@ export function ControlsPanel({
           min={256}
           name="maxWidth"
           onChange={(e) => {
-            const value = e.target.value;
+            const { value } = e.target;
             if (value === "") {
               onParametersChange({ maxWidth: null });
             } else {

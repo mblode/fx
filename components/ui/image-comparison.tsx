@@ -31,7 +31,7 @@ export function ImageComparison({
 
     const img = new Image();
     img.onload = () => {
-      setMeasuredDimensions({ width: img.width, height: img.height });
+      setMeasuredDimensions({ height: img.height, width: img.width });
     };
     img.src = afterImage;
   }, [afterImage, dimensions]);

@@ -57,7 +57,7 @@ const loadNoiseTexture = async (size: number): Promise<NoiseTexture> => {
 
   bitmap.close();
 
-  const noise = { data: grayscale, width: bitmap.width, height: bitmap.height };
+  const noise = { data: grayscale, height: bitmap.height, width: bitmap.width };
   noiseCache.set(size, noise);
   return noise;
 };
@@ -184,7 +184,7 @@ const processDither = async (
   outputCtx.putImageData(outputImageData, 0, 0);
 
   const blob = await outputCanvas.convertToBlob({ type: "image/png" });
-  return { blob, width: outputWidth, height: outputHeight };
+  return { blob, height: outputHeight, width: outputWidth };
 };
 
 const ctx = self as DedicatedWorkerGlobalScope;
@@ -196,8 +196,8 @@ ctx.addEventListener(
 
     if (typeof OffscreenCanvas === "undefined") {
       const response: DitherWorkerResponse = {
-        id,
         error: "OffscreenCanvas is not supported in this browser.",
+        id,
       };
       ctx.postMessage(response);
       return;
@@ -205,12 +205,12 @@ ctx.addEventListener(
 
     try {
       const { blob, width, height } = await processDither(file, params);
-      const response: DitherWorkerResponse = { id, blob, width, height };
+      const response: DitherWorkerResponse = { blob, height, id, width };
       ctx.postMessage(response);
     } catch (error) {
       const response: DitherWorkerResponse = {
-        id,
         error: error instanceof Error ? error.message : "Unknown worker error",
+        id,
       };
       ctx.postMessage(response);
     }

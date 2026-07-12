@@ -37,7 +37,7 @@ export function getTargetDimensions(
     targetWidth = params.maxWidth;
   }
 
-  return { width: targetWidth, height: targetHeight };
+  return { height: targetHeight, width: targetWidth };
 }
 
 /**
@@ -57,8 +57,8 @@ export function ditherImageData(
   params: DitherParameters,
   target?: { width: number; height: number }
 ): ImageData {
-  const width = imageData.width;
-  const height = imageData.height;
+  const { width } = imageData;
+  const { height } = imageData;
   const fg = hexToRgb(params.foreground);
   const bg = hexToRgb(params.background);
   const pixelSize = Math.max(1, Math.floor(params.pixelSize));

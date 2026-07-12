@@ -3,6 +3,7 @@
 import { CloudUploadIcon } from "blode-icons-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { CanvasPreview } from "@/components/dither/canvas-preview";
 import { ControlsPanel } from "@/components/dither/controls-panel";
@@ -64,18 +65,18 @@ export default function DitherPage() {
   const onSourceLoaded = useCallback(
     (width: number) => {
       updateParameters({
-        pixelSize: Math.max(1, Math.round(width / 512)),
         maxWidth: null,
+        pixelSize: Math.max(1, Math.round(width / 512)),
       });
     },
     [updateParameters]
   );
 
   const video = useVideoDither({
-    mediaKind,
     file: mediaKind === "video" ? uploadedImage : null,
-    parameters,
+    mediaKind,
     onSourceLoaded,
+    parameters,
   });
 
   const onDrop = useCallback(
@@ -90,11 +91,11 @@ export default function DitherPage() {
   );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    onDrop,
     accept: { "image/*": [], "video/*": [] },
     maxFiles: 1,
     multiple: false,
     noClick: uploadedImage !== null || webcamActive,
+    onDrop,
   });
 
   const flashSuccess = () => {

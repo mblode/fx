@@ -1,4 +1,5 @@
 import { ArrayBufferTarget, Muxer } from "mp4-muxer";
+
 import { createDitherScratch, ditherDrawable } from "./core";
 import type { DitherParameters, NoiseTexture } from "./types";
 
@@ -29,9 +30,9 @@ async function pickAvcCodec(
     try {
       const support = await VideoEncoder.isConfigSupported({
         codec,
-        width,
-        height,
         framerate,
+        height,
+        width,
       });
       if (support.supported) {
         return codec;
@@ -67,7 +68,7 @@ async function createVideoSession(opts: {
 
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
-    video: { codec: "avc", width, height, frameRate: opts.fps },
+    video: { codec: "avc", frameRate: opts.fps, height, width },
     audio: opts.audio
       ? {
           codec: "aac",
@@ -81,17 +82,17 @@ async function createVideoSession(opts: {
   });
 
   const encoder = new VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
     error: (e) => {
       console.error("VideoEncoder error:", e);
     },
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
   });
   encoder.configure({
-    codec,
-    width,
-    height,
     bitrate: opts.bitrate,
+    codec,
     framerate: opts.fps,
+    height,
+    width,
   });
 
   const outCanvas = document.createElement("canvas");
@@ -102,7 +103,7 @@ async function createVideoSession(opts: {
     throw new Error("Could not get canvas context");
   }
 
-  return { muxer, encoder, outCanvas, outCtx };
+  return { encoder, muxer, outCanvas, outCtx };
 }
 
 // Draw a dithered ImageData onto the (even-sized) output canvas.
@@ -117,16 +118,16 @@ async function encodeAudioFromBuffer(
   const { numberOfChannels, sampleRate, length } = audioBuffer;
 
   const audioEncoder = new AudioEncoder({
-    output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
     error: (e) => {
       console.error("AudioEncoder error:", e);
     },
+    output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
   });
   audioEncoder.configure({
+    bitrate: 128_000,
     codec: "mp4a.40.2",
     numberOfChannels,
     sampleRate,
-    bitrate: 128_000,
   });
 
   // Feed the PCM in chunks as planar float32 AudioData.
@@ -144,12 +145,12 @@ async function encodeAudioFromBuffer(
     }
     const timestamp = Math.round((offset / sampleRate) * 1_000_000);
     const audioData = new AudioData({
-      format: "f32-planar",
-      sampleRate,
-      numberOfFrames: frames,
-      numberOfChannels,
-      timestamp,
       data: planar,
+      format: "f32-planar",
+      numberOfChannels,
+      numberOfFrames: frames,
+      sampleRate,
+      timestamp,
     });
     audioEncoder.encode(audioData);
     audioData.close();
@@ -250,16 +251,16 @@ export async function exportDitheredVideoFile(
   const audioBuffer = file ? await decodeAudio(file) : null;
 
   const session = await createVideoSession({
-    width: sample.width,
-    height: sample.height,
-    fps,
-    bitrate: 8_000_000,
     audio: audioBuffer
       ? {
           numberOfChannels: audioBuffer.numberOfChannels,
           sampleRate: audioBuffer.sampleRate,
         }
       : undefined,
+    bitrate: 8_000_000,
+    fps,
+    height: sample.height,
+    width: sample.width,
   });
 
   if (audioBuffer) {
@@ -291,8 +292,8 @@ export async function exportDitheredVideoFile(
     paintFrame(session, dithered);
 
     const frame = new VideoFrame(session.outCanvas, {
-      timestamp: Math.round(time * 1_000_000),
       duration: frameDurationUs,
+      timestamp: Math.round(time * 1_000_000),
     });
     session.encoder.encode(frame, { keyFrame: frameCount % (fps * 2) === 0 });
     frame.close();
@@ -340,9 +341,7 @@ export async function createLiveRecorder(opts: {
   // in the standard DOM lib types, so reference it through a typed global.
   const TrackProcessor = (
     globalThis as unknown as {
-      MediaStreamTrackProcessor?: new (init: {
-        track: MediaStreamTrack;
-      }) => {
+      MediaStreamTrackProcessor?: new (init: { track: MediaStreamTrack }) => {
         readable: ReadableStream<AudioData>;
       };
     }
@@ -364,11 +363,11 @@ export async function createLiveRecorder(opts: {
   }
 
   const session = await createVideoSession({
-    width: opts.width,
-    height: opts.height,
-    fps,
-    bitrate: 6_000_000,
     audio: audioSettings ?? undefined,
+    bitrate: 6_000_000,
+    fps,
+    height: opts.height,
+    width: opts.width,
   });
 
   let frameCount = 0;
@@ -378,16 +377,16 @@ export async function createLiveRecorder(opts: {
   let audioDone: Promise<void> = Promise.resolve();
   if (audioSettings && opts.audioTrack && TrackProcessor) {
     audioEncoder = new AudioEncoder({
-      output: (chunk, meta) => session.muxer.addAudioChunk(chunk, meta),
       error: (e) => {
         console.error("AudioEncoder error:", e);
       },
+      output: (chunk, meta) => session.muxer.addAudioChunk(chunk, meta),
     });
     audioEncoder.configure({
+      bitrate: 128_000,
       codec: "mp4a.40.2",
       numberOfChannels: audioSettings.numberOfChannels,
       sampleRate: audioSettings.sampleRate,
-      bitrate: 128_000,
     });
 
     const processor = new TrackProcessor({ track: opts.audioTrack });
@@ -413,8 +412,8 @@ export async function createLiveRecorder(opts: {
       }
       paintFrame(session, dithered);
       const frame = new VideoFrame(session.outCanvas, {
-        timestamp: Math.round(timestampMs * 1000),
         duration: Math.round(1_000_000 / fps),
+        timestamp: Math.round(timestampMs * 1000),
       });
       session.encoder.encode(frame, {
         keyFrame: frameCount % (fps * 2) === 0,
