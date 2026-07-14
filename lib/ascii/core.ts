@@ -239,7 +239,14 @@ export const renderAsciiToImageData = (
   options: AsciiRenderOptions = {}
 ): ImageData => {
   const opts = mergeOptions(options);
-  const { cellWidth, cellHeight, font, foreground, background } = opts;
+  const { font, foreground, background } = opts;
+
+  // Supersample the output only: the grid is already chosen, so scaling the
+  // cell size and font here just rasterizes each glyph with more pixels.
+  const scale = Math.max(1, opts.renderScale);
+  const cellWidth = opts.cellWidth * scale;
+  const cellHeight = opts.cellHeight * scale;
+  const fontSize = font.size * scale;
 
   const rows = grid.length;
   const columns = grid[0]?.length ?? 0;
@@ -273,8 +280,8 @@ export const renderAsciiToImageData = (
   // Set up text rendering
   const [fgR, fgG, fgB] = parseColor(foreground);
   ctx.fillStyle = `rgb(${fgR}, ${fgG}, ${fgB})`;
-  // Use the same font size as the character vector generation
-  ctx.font = createFontString(font);
+  // Match the font to the supersampled cell so glyphs stay proportional.
+  ctx.font = createFontString(font, fontSize);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 

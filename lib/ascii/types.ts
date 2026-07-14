@@ -42,6 +42,12 @@ export interface AsciiRenderOptions {
   layout?: AsciiSamplingLayout;
   cache?: Partial<AsciiLookupCacheOptions>;
   ledMode?: boolean;
+  /**
+   * Supersampling factor for the output ImageData only. Values > 1 draw each
+   * glyph/LED cell at a higher pixel density (crisper when the preview is
+   * upscaled) without changing the sampling grid, columns, or chosen glyphs.
+   */
+  renderScale?: number;
 }
 
 export interface AsciiCharacter {

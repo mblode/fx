@@ -26,11 +26,13 @@ const ASCII_FONT_FAMILY = "Courier New, Courier, monospace";
 /**
  * Convert simplified AsciiParameters to full AsciiRenderOptions.
  * Derives cell dimensions from target columns and source image width.
+ * `renderScale` supersamples the output for crisper glyphs (1 = off).
  */
 export function toAsciiRenderOptions(
   params: AsciiParameters,
   imageWidth: number,
-  ledMode: boolean
+  ledMode: boolean,
+  renderScale = 1
 ): AsciiRenderOptions {
   const targetCellWidth = Math.max(1, Math.floor(imageWidth / params.columns));
   const { cellWidth, cellHeight, fontSize } = deriveCellDimensions(
@@ -58,5 +60,6 @@ export function toAsciiRenderOptions(
     sampleCount: 3,
     output: "both",
     ledMode,
+    renderScale,
   };
 }

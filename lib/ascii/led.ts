@@ -13,7 +13,12 @@ export const renderLedToImageData = (
   options: AsciiRenderOptions = {}
 ): ImageData => {
   const opts = mergeOptions(options);
-  const { cellWidth, cellHeight } = opts;
+
+  // Supersample the output only (crisper bar edges when upscaled).
+  const scale = Math.max(1, opts.renderScale);
+  const cellWidth = opts.cellWidth * scale;
+  const cellHeight = opts.cellHeight * scale;
+  const gap = LED_GAP * scale;
 
   const rows = brightnessGrid.length;
   const columns = brightnessGrid[0]?.length ?? 0;
@@ -42,9 +47,9 @@ export const renderLedToImageData = (
   ctx.fillStyle = "rgb(0, 0, 0)";
   ctx.fillRect(0, 0, width, height);
 
-  const halfGap = LED_GAP / 2;
-  const maxBarWidth = cellWidth - LED_GAP;
-  const barHeight = cellHeight - LED_GAP;
+  const halfGap = gap / 2;
+  const maxBarWidth = cellWidth - gap;
+  const barHeight = cellHeight - gap;
 
   for (let row = 0; row < rows; row++) {
     const brightnessRow = brightnessGrid[row];

@@ -16,6 +16,16 @@ export type { AsciiParameters } from "@/lib/ascii/params";
 
 const MAX_IMAGE_DIMENSION = 1400;
 
+// Supersample the rendered output so glyphs stay crisp when the preview is
+// scaled up. Match the display's pixel density, with a floor of 2× since the
+// grid resolution is capped well below typical screen widths.
+const getRenderScale = (): number => {
+  if (typeof window === "undefined") {
+    return 2;
+  }
+  return Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 1)));
+};
+
 const getScaledDimensions = (
   width: number,
   height: number,
@@ -179,7 +189,8 @@ export function useAscii({ uploadedImage, enabled, ledMode }: UseAsciiProps) {
         const renderOptions = toAsciiRenderOptions(
           debouncedParams,
           imageData.width,
-          ledMode
+          ledMode,
+          getRenderScale()
         );
         const result = await renderAsciiAsync(imageData, renderOptions);
 
