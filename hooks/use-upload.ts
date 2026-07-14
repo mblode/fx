@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Shared upload state for the studio. Owns the single uploaded file, the webcam
- * toggle, and the initial placeholder load so every render mode (blue noise,
- * ascii, led) operates on the same source image.
+ * Shared upload state for the studio. Owns the single uploaded file and the
+ * initial placeholder load so every render mode (blue noise, ascii, led)
+ * operates on the same source image.
  */
 export function useUpload() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [webcamActive, setWebcamActive] = useState(false);
 
   const placeholderAttempted = useRef(false);
   const [isLoadingPlaceholder, setIsLoadingPlaceholder] = useState(true);
@@ -39,8 +38,6 @@ export function useUpload() {
   return {
     isLoadingPlaceholder,
     setUploadedImage,
-    setWebcamActive,
     uploadedImage,
-    webcamActive,
   };
 }

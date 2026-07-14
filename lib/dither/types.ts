@@ -21,7 +21,7 @@ export interface RGB {
 }
 
 /** The kind of media currently loaded into the studio. */
-export type MediaKind = "image" | "video" | "webcam";
+export type MediaKind = "image" | "video";
 
 /** True when the given File is a video (vs. an image). */
 export function isVideoFile(file: File | null): boolean {

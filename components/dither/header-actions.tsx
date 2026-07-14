@@ -3,10 +3,7 @@
 import {
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
-  Camera1Icon,
   EyeOpenIcon,
-  RecordIcon,
-  StopIcon,
 } from "blode-icons-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,18 +14,14 @@ interface HeaderActionsProps {
   mediaKind: MediaKind;
   hasDitheredImage: boolean;
   hasUpload: boolean;
-  webcamActive: boolean;
   showOriginal: boolean;
   downloadSuccess: boolean;
   isExporting: boolean;
-  isRecording: boolean;
   isVideoReady: boolean;
   onToggleOriginal: () => void;
-  onToggleCamera: () => void;
   onUpload: () => void;
   onDownloadImage: () => void;
   onExportVideo: () => void;
-  onRecordToggle: () => void;
 }
 
 function PrimaryAction(props: HeaderActionsProps) {
@@ -37,11 +30,9 @@ function PrimaryAction(props: HeaderActionsProps) {
     hasDitheredImage,
     downloadSuccess,
     isExporting,
-    isRecording,
     isVideoReady,
     onDownloadImage,
     onExportVideo,
-    onRecordToggle,
   } = props;
 
   if (mediaKind === "image") {
@@ -61,35 +52,16 @@ function PrimaryAction(props: HeaderActionsProps) {
     );
   }
 
-  if (mediaKind === "video") {
-    return (
-      <Button
-        aria-label="Export dithered video"
-        className={cn(downloadSuccess && "scale-110")}
-        disabled={isExporting || !isVideoReady}
-        onClick={onExportVideo}
-        size="sm"
-      >
-        <ArrowDownCircleIcon className="size-4" />
-        {isExporting ? "Exporting…" : "Export"}
-      </Button>
-    );
-  }
-
   return (
     <Button
-      aria-label={isRecording ? "Stop recording" : "Start recording"}
-      disabled={!isVideoReady}
-      onClick={onRecordToggle}
+      aria-label="Export dithered video"
+      className={cn(downloadSuccess && "scale-110")}
+      disabled={isExporting || !isVideoReady}
+      onClick={onExportVideo}
       size="sm"
-      variant={isRecording ? "destructive" : "default"}
     >
-      {isRecording ? (
-        <StopIcon className="size-4" />
-      ) : (
-        <RecordIcon className="size-4" />
-      )}
-      {isRecording ? "Stop" : "Record"}
+      <ArrowDownCircleIcon className="size-4" />
+      {isExporting ? "Exporting…" : "Export"}
     </Button>
   );
 }
@@ -99,10 +71,8 @@ export function HeaderActions(props: HeaderActionsProps) {
     mediaKind,
     hasDitheredImage,
     hasUpload,
-    webcamActive,
     showOriginal,
     onToggleOriginal,
-    onToggleCamera,
     onUpload,
   } = props;
 
@@ -122,16 +92,6 @@ export function HeaderActions(props: HeaderActionsProps) {
           Original
         </Button>
       )}
-      <Button
-        aria-label={webcamActive ? "Stop camera" : "Use camera"}
-        aria-pressed={webcamActive}
-        onClick={onToggleCamera}
-        size="sm"
-        variant={webcamActive ? "default" : "outline"}
-      >
-        <Camera1Icon className="size-4" />
-        Camera
-      </Button>
       <Button
         aria-label={hasUpload ? "Upload new file" : "Upload file"}
         onClick={onUpload}

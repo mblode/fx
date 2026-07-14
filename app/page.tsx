@@ -60,14 +60,8 @@ function outputFilename(
   return base ? `${base}-${suffix}.${ext}` : `${suffix}.${ext}`;
 }
 
-function resolveMediaKind(webcamActive: boolean, file: File | null): MediaKind {
-  if (webcamActive) {
-    return "webcam";
-  }
-  if (isVideoFile(file)) {
-    return "video";
-  }
-  return "image";
+function resolveMediaKind(file: File | null): MediaKind {
+  return isVideoFile(file) ? "video" : "image";
 }
 
 function StudioPage() {
@@ -75,24 +69,18 @@ function StudioPage() {
     "mode",
     parseAsStringLiteral(MODE_VALUES).withDefault(DEFAULT_MODE)
   );
-  const {
-    uploadedImage,
-    isLoadingPlaceholder,
-    setUploadedImage,
-    webcamActive,
-    setWebcamActive,
-  } = useUpload();
+  const { uploadedImage, isLoadingPlaceholder, setUploadedImage } = useUpload();
 
   const [showOriginal, setShowOriginal] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   const isBlueNoise = mode === "blue-noise";
 
-  const mediaKind = resolveMediaKind(webcamActive, uploadedImage);
+  const mediaKind = resolveMediaKind(uploadedImage);
   const isVideoMode = mediaKind !== "image";
 
-  // Still-image rendering runs through the per-mode hooks; video/webcam is
-  // handled by the shared media studio below. Each still hook is disabled when
+  // Still-image rendering runs through the per-mode hooks; video is handled by
+  // the shared media studio below. Each still hook is disabled when
   // its mode isn't active or when the source is a video.
   const stillImageEnabled = !isVideoMode;
   const asciiSourceFile =
@@ -169,19 +157,18 @@ function StudioPage() {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles[0]) {
-        setWebcamActive(false);
         setUploadedImage(acceptedFiles[0]);
         setShowOriginal(false);
       }
     },
-    [setUploadedImage, setWebcamActive]
+    [setUploadedImage]
   );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: { "image/*": [], "video/*": [] },
     maxFiles: 1,
     multiple: false,
-    noClick: uploadedImage !== null || webcamActive,
+    noClick: uploadedImage !== null,
     onDrop,
   });
 
@@ -240,25 +227,8 @@ function StudioPage() {
     }
   };
 
-  const handleRecordToggle = async () => {
-    if (video.isRecording) {
-      const blob = await video.stopRecording();
-      if (blob) {
-        downloadBlob(blob, `webcam-${MODE_FILENAME_SUFFIX[mode]}.mp4`);
-        flashSuccess();
-      }
-    } else {
-      await video.startRecording();
-    }
-  };
-
-  const toggleCamera = () => {
-    setShowOriginal(false);
-    setWebcamActive((prev) => !prev);
-  };
-
   // Controls are disabled until there's a usable source.
-  const controlsDisabled = !(uploadedImage || webcamActive);
+  const controlsDisabled = !uploadedImage;
 
   const dimensionsForControls = (() => {
     if (isVideoMode) {
@@ -273,17 +243,13 @@ function StudioPage() {
       hasDitheredImage={activeDithered !== null}
       hasUpload={uploadedImage !== null}
       isExporting={video.isExporting}
-      isRecording={video.isRecording}
       isVideoReady={video.isReady}
       mediaKind={mediaKind}
       onDownloadImage={handleDownloadImage}
       onExportVideo={handleExportVideo}
-      onRecordToggle={handleRecordToggle}
-      onToggleCamera={toggleCamera}
       onToggleOriginal={() => setShowOriginal((prev) => !prev)}
       onUpload={open}
       showOriginal={showOriginal}
-      webcamActive={webcamActive}
     />
   );
 
@@ -328,7 +294,7 @@ function StudioPage() {
             className={cn(
               "relative flex flex-col transition-colors md:min-h-0 md:flex-1",
               isDragActive && "bg-primary/5",
-              !(uploadedImage || webcamActive) && "cursor-pointer"
+              !uploadedImage && "cursor-pointer"
             )}
           >
             <input {...getInputProps()} />
@@ -364,8 +330,6 @@ function StudioPage() {
                   isExporting={video.isExporting}
                   isPlaying={video.isPlaying}
                   isReady={video.isReady}
-                  isRecording={video.isRecording}
-                  mediaKind={mediaKind}
                   onSeek={video.seek}
                   onTogglePlay={video.togglePlay}
                   videoRef={video.videoRef}
