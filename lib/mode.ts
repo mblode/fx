@@ -28,9 +28,9 @@ export const MODE_OPTIONS: ModeOption[] = [
 ];
 
 /** All render mode values, in switcher order. Used for URL query parsing. */
-export const MODE_VALUES = MODE_OPTIONS.map(
+export const MODE_VALUES: RenderMode[] = MODE_OPTIONS.map(
   (option) => option.value
-) as RenderMode[];
+);
 
 /** The default render mode when none is set in the URL. */
 export const DEFAULT_MODE: RenderMode = "blue-noise";

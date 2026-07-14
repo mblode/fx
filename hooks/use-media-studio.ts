@@ -38,7 +38,6 @@ export function useMediaStudio({
   const onSourceLoadedRef = useRef(onSourceLoaded);
   onSourceLoadedRef.current = onSourceLoaded;
 
-  const [dimensions, setDimensions] = useState<Dimensions | null>(null);
   const [sourceDimensions, setSourceDimensions] = useState<Dimensions | null>(
     null
   );
@@ -73,7 +72,6 @@ export function useMediaStudio({
     if (canvas.width !== rendered.width || canvas.height !== rendered.height) {
       canvas.width = rendered.width;
       canvas.height = rendered.height;
-      setDimensions({ height: rendered.height, width: rendered.width });
     }
     const ctx = canvas.getContext("2d");
     ctx?.putImageData(rendered, 0, 0);
@@ -124,7 +122,6 @@ export function useMediaStudio({
     setDuration(0);
 
     const onLoadedMetadata = () => {
-      setDimensions(null);
       setSourceDimensions({
         height: video.videoHeight,
         width: video.videoWidth,
@@ -138,6 +135,12 @@ export function useMediaStudio({
       });
     };
 
+    const onError = () => {
+      setError(
+        "This video couldn't be loaded. Try a different file or format."
+      );
+    };
+
     if (file) {
       objectUrl = URL.createObjectURL(file);
       video.src = objectUrl;
@@ -145,12 +148,14 @@ export function useMediaStudio({
       video.muted = true;
       video.playsInline = true;
       video.addEventListener("loadedmetadata", onLoadedMetadata);
+      video.addEventListener("error", onError);
       video.load();
     }
 
     return () => {
       stopLoop();
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("error", onError);
       video.pause();
       video.src = "";
       if (objectUrl) {
@@ -252,7 +257,6 @@ export function useMediaStudio({
   return {
     canvasRef,
     currentTime,
-    dimensions,
     duration,
     error,
     exportError,
