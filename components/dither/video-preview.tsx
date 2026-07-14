@@ -5,10 +5,8 @@ import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { MediaKind } from "@/lib/dither/types";
 
 interface VideoPreviewProps {
-  mediaKind: MediaKind;
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   isReady: boolean;
@@ -18,7 +16,6 @@ interface VideoPreviewProps {
   duration: number;
   isExporting: boolean;
   exportProgress: number;
-  isRecording: boolean;
   exportError: string | null;
   onTogglePlay: () => void;
   onSeek: (time: number) => void;
@@ -34,7 +31,6 @@ function formatTime(seconds: number): string {
 }
 
 export function VideoPreview({
-  mediaKind,
   videoRef,
   canvasRef,
   isReady,
@@ -44,13 +40,10 @@ export function VideoPreview({
   duration,
   isExporting,
   exportProgress,
-  isRecording,
   exportError,
   onTogglePlay,
   onSeek,
 }: VideoPreviewProps) {
-  const isWebcam = mediaKind === "webcam";
-
   return (
     <div className="flex w-full max-w-4xl flex-col items-center gap-3">
       {/*
@@ -70,7 +63,7 @@ export function VideoPreview({
       <div className="relative flex w-full items-center justify-center">
         {error ? (
           <div className="flex w-full max-w-2xl flex-col items-center gap-2 rounded-3xl border-2 border-border border-dashed p-12 text-center">
-            <p className="font-medium text-foreground">Camera unavailable</p>
+            <p className="font-medium text-foreground">Video unavailable</p>
             <p className="text-muted-foreground text-sm leading-[1.6]">
               {error}
             </p>
@@ -84,12 +77,6 @@ export function VideoPreview({
             {!isReady && (
               <div className="absolute inset-0">
                 <Skeleton className="h-full w-full rounded-lg" />
-              </div>
-            )}
-            {isRecording && (
-              <div className="fade-in-0 absolute top-4 left-4 flex animate-in items-center gap-2 rounded-full bg-background/90 px-3 py-1.5 shadow-sm ring-1 ring-border backdrop-blur-sm">
-                <span className="size-2 animate-pulse rounded-full bg-red-500" />
-                <span className="font-medium text-sm">Recording</span>
               </div>
             )}
             {isExporting && (
@@ -111,8 +98,8 @@ export function VideoPreview({
         )}
       </div>
 
-      {/* Transport controls for file video (webcam has no timeline). */}
-      {!(isWebcam || error) && isReady && (
+      {/* Transport controls for the loaded video. */}
+      {!error && isReady && (
         <div className="flex w-full items-center gap-3">
           <Button
             aria-label={isPlaying ? "Pause" : "Play"}

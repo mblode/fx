@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { MediaKind } from "@/lib/dither/types";
-import { createLiveRecorder, exportVideoFile } from "@/lib/dither/video-export";
-import type { LiveRecorder } from "@/lib/dither/video-export";
+import { exportVideoFile } from "@/lib/dither/video-export";
 import type { FrameRenderer } from "@/lib/frame-renderer";
 
 interface UseMediaStudioProps {
@@ -31,8 +30,6 @@ export function useMediaStudio({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const loopActiveRef = useRef(false);
-  const recorderRef = useRef<LiveRecorder | null>(null);
-  const recordStartRef = useRef(0);
 
   // Latest frame renderer, read inside the loop without restarting it.
   const renderFrameRef = useRef(renderFrame);
@@ -53,10 +50,9 @@ export function useMediaStudio({
 
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const isActive = mediaKind === "video" || mediaKind === "webcam";
+  const isActive = mediaKind === "video";
 
   const renderFrameToCanvas = useCallback(() => {
     const video = videoRef.current;
@@ -81,13 +77,6 @@ export function useMediaStudio({
     }
     const ctx = canvas.getContext("2d");
     ctx?.putImageData(rendered, 0, 0);
-
-    if (recorderRef.current) {
-      recorderRef.current.addFrame(
-        rendered,
-        performance.now() - recordStartRef.current
-      );
-    }
   }, []);
 
   const stopLoop = useCallback(() => {
@@ -128,8 +117,6 @@ export function useMediaStudio({
     }
 
     let objectUrl: string | null = null;
-    let stream: MediaStream | null = null;
-    let cancelled = false;
 
     setIsReady(false);
     setError(null);
@@ -151,49 +138,20 @@ export function useMediaStudio({
       });
     };
 
-    if (mediaKind === "video" && file) {
+    if (file) {
       objectUrl = URL.createObjectURL(file);
-      video.srcObject = null;
       video.src = objectUrl;
       video.loop = true;
       video.muted = true;
       video.playsInline = true;
       video.addEventListener("loadedmetadata", onLoadedMetadata);
       video.load();
-    } else if (mediaKind === "webcam") {
-      navigator.mediaDevices
-        .getUserMedia({ audio: true, video: true })
-        .then((s) => {
-          if (cancelled) {
-            for (const t of s.getTracks()) {
-              t.stop();
-            }
-            return;
-          }
-          stream = s;
-          video.src = "";
-          video.srcObject = s;
-          video.loop = false;
-          video.muted = true;
-          video.playsInline = true;
-          video.addEventListener("loadedmetadata", onLoadedMetadata);
-        })
-        .catch(() => {
-          setError("Camera access was denied or is unavailable.");
-        });
     }
 
     return () => {
-      cancelled = true;
       stopLoop();
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.pause();
-      if (stream) {
-        for (const t of stream.getTracks()) {
-          t.stop();
-        }
-      }
-      video.srcObject = null;
       video.src = "";
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
@@ -291,40 +249,6 @@ export function useMediaStudio({
     }
   }, [file, startLoop, stopLoop]);
 
-  // Webcam recording.
-  const startRecording = useCallback(async () => {
-    const video = videoRef.current;
-    const stream = video?.srcObject as MediaStream | null;
-    if (!(video && dimensions)) {
-      return;
-    }
-    const audioTrack = stream?.getAudioTracks()[0] ?? null;
-    setExportError(null);
-    try {
-      recorderRef.current = await createLiveRecorder({
-        audioTrack,
-        height: dimensions.height,
-        width: dimensions.width,
-      });
-      recordStartRef.current = performance.now();
-      setIsRecording(true);
-    } catch (error) {
-      setExportError(
-        error instanceof Error ? error.message : "Recording failed to start."
-      );
-    }
-  }, [dimensions]);
-
-  const stopRecording = useCallback(async (): Promise<Blob | null> => {
-    const recorder = recorderRef.current;
-    if (!recorder) {
-      return null;
-    }
-    recorderRef.current = null;
-    setIsRecording(false);
-    return await recorder.stop();
-  }, []);
-
   return {
     canvasRef,
     currentTime,
@@ -337,13 +261,10 @@ export function useMediaStudio({
     isExporting,
     isPlaying,
     isReady,
-    isRecording,
     pause,
     play,
     seek,
     sourceDimensions,
-    startRecording,
-    stopRecording,
     togglePlay,
     videoRef,
   };
