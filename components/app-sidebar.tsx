@@ -78,31 +78,11 @@ export function AppSidebar({
             <li>
               <a
                 className="transition-colors hover:text-foreground"
-                href="https://www.npmjs.com/package/blue-noise"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Blue noise npm package
-              </a>
-            </li>
-            <li>
-              <a
-                className="transition-colors hover:text-foreground"
                 href="https://github.com/mblode/blue-noise-typescript"
                 rel="noopener noreferrer"
                 target="_blank"
               >
                 Source on GitHub
-              </a>
-            </li>
-            <li>
-              <a
-                className="transition-colors hover:text-foreground"
-                href="https://dither.blode.co"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                More dithering tools
               </a>
             </li>
           </ul>
