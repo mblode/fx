@@ -27,6 +27,14 @@ export const MODE_OPTIONS: ModeOption[] = [
   },
 ];
 
+/** All render mode values, in switcher order. Used for URL query parsing. */
+export const MODE_VALUES = MODE_OPTIONS.map(
+  (option) => option.value
+) as RenderMode[];
+
+/** The default render mode when none is set in the URL. */
+export const DEFAULT_MODE: RenderMode = "blue-noise";
+
 /** The download filename suffix for a mode (e.g. photo-ascii.png). */
 export const MODE_FILENAME_SUFFIX: Record<RenderMode, string> = {
   "blue-noise": "dithered",

@@ -1,5 +1,7 @@
 "use client";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function SidebarProviderWrapper({
@@ -7,5 +9,9 @@ export function SidebarProviderWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  return <SidebarProvider>{children}</SidebarProvider>;
+  return (
+    <NuqsAdapter>
+      <SidebarProvider>{children}</SidebarProvider>
+    </NuqsAdapter>
+  );
 }

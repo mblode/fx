@@ -18,6 +18,7 @@ Blue Noise Dither is a Next.js 16 web application that applies high-quality blue
 ## Code Quality & Pre-commit
 
 The project uses **Ultracite** (a Biome-based preset) for formatting and linting, enforced via:
+
 - **Husky pre-commit hook**: Automatically runs `npx ultracite fix` on staged files via lint-staged
 - Always run `npm exec -- ultracite fix` before committing if not using the hook
 

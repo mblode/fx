@@ -1,7 +1,15 @@
 "use client";
 
 import { CloudUploadIcon } from "blode-icons-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDropzone } from "react-dropzone";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -22,7 +30,12 @@ import {
   createAsciiFrameRenderer,
   createDitherFrameRenderer,
 } from "@/lib/frame-renderer";
-import { MODE_FILENAME_SUFFIX, modeLabel } from "@/lib/mode";
+import {
+  DEFAULT_MODE,
+  MODE_FILENAME_SUFFIX,
+  MODE_VALUES,
+  modeLabel,
+} from "@/lib/mode";
 import type { RenderMode } from "@/lib/mode";
 import { getNoiseTexture } from "@/lib/noise/textures";
 import { cn } from "@/lib/utils";
@@ -57,8 +70,11 @@ function resolveMediaKind(webcamActive: boolean, file: File | null): MediaKind {
   return "image";
 }
 
-export default function StudioPage() {
-  const [mode, setMode] = useState<RenderMode>("blue-noise");
+function StudioPage() {
+  const [mode, setMode] = useQueryState(
+    "mode",
+    parseAsStringLiteral(MODE_VALUES).withDefault(DEFAULT_MODE)
+  );
   const {
     uploadedImage,
     isLoadingPlaceholder,
@@ -390,5 +406,13 @@ export default function StudioPage() {
         </div>
       </SidebarInset>
     </>
+  );
+}
+
+export default function StudioPageWrapper() {
+  return (
+    <Suspense>
+      <StudioPage />
+    </Suspense>
   );
 }
