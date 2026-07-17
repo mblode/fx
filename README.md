@@ -1,28 +1,28 @@
-# Blue Noise Dither
+# FX
 
-Apply beautiful blue-noise dithering to any image, right in your browser.
+Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix — right in your browser.
 
-**→ [blue-noise.blode.co](https://blue-noise.blode.co)**
+**→ [fx.blode.co](https://fx.blode.co)**
 
-Drop in a photo and watch it transform into a crisp, grainless dither in real time. Tune the look until it's exactly right, then download the result. It's free, there's no sign-up, and your images never leave your device — all the processing happens locally in your browser.
+Drop in a photo or a video clip, pick a mode, and watch it transform in real time. Tune the look until it's exactly right, then export. It's free, there's no sign-up, and your files never leave your device — all the processing happens locally in your browser.
+
+## Modes
+
+- **Blue Noise** — grainless blue-noise dithering. Pick any foreground and background color, then dial in brightness, contrast, and scale. Blue noise distributes pixels so the texture reads as even and natural — no clumps, no banding, no repeating grid. It's the same technique used in high-end print and rendering.
+- **ASCII** — glyph-based ASCII art, rendered from a 95-character set with per-cell sampling for real edge definition rather than a naive brightness ramp.
+- **LED** — a red-to-white LED dot matrix, where each cell's bar width and color encode brightness.
 
 ## What you can do
 
-- **Drag and drop any image** — or click to browse. PNG, JPG, WebP, and more.
-- **See it instantly** — the dither updates live as you adjust settings.
-- **Pick your colors** — set any foreground and background color.
-- **Dial in the look** — brightness, contrast, and scale (pixel size) sliders.
-- **Resize on export** — cap the output width while keeping the aspect ratio.
-- **Compare** — toggle between your original and the dithered version.
-- **Download as PNG** — high-resolution, ready to use.
-
-## Why blue noise?
-
-Blue-noise dithering distributes pixels so the texture looks even and natural to the eye — no clumps, no harsh banding, no repeating grid. It's the same technique used in high-end print and rendering.
+- **Drop in an image or a video** — or click to browse. PNG, JPG, WebP, MP4, and more.
+- **See it instantly** — the render updates live as you adjust settings.
+- **Scrub through video** — play, pause, and seek with the effect applied to every frame.
+- **Compare** — press and hold to peek at the original.
+- **Export** — PNG for stills, or H.264 MP4 for video with the original audio preserved.
 
 ## Private by design
 
-Your images are processed entirely in your browser. Nothing is uploaded to a server, stored, or sent anywhere.
+Your files are processed entirely in your browser. Nothing is uploaded to a server, stored, or sent anywhere.
 
 ## License
 

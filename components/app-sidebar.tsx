@@ -78,7 +78,7 @@ export function AppSidebar({
             <li>
               <a
                 className="transition-colors hover:text-foreground"
-                href="https://github.com/mblode/blue-noise-typescript"
+                href="https://github.com/mblode/fx"
                 rel="noopener noreferrer"
                 target="_blank"
               >
