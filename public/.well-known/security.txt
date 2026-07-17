@@ -1,0 +1,4 @@
+Contact: mailto:m@blode.co
+Expires: 2027-07-17T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://fx.blode.co/.well-known/security.txt
