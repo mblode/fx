@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Blue noise",
+    title: "FX",
   },
   authors: [{ name: "Matthew Blode", url: "https://matthewblode.com" }],
   category: "technology",
   creator: "Matthew Blode",
   description:
-    "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix online. Free, fast, client-side image processing with real-time preview.",
+    "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
   icons: {
     apple: [{ url: "/apple-icon.png" }],
     icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
@@ -37,25 +37,20 @@ export const metadata: Metadata = {
     "ordered dithering",
     "online image processor",
     "blue noise algorithm",
+    "video to ascii",
+    "dither video",
+    "ascii art video",
   ],
   manifest: "/manifest.json",
-  metadataBase: new URL("https://blue-noise.blode.co"),
+  metadataBase: new URL("https://fx.blode.co"),
   openGraph: {
     description:
-      "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix online. Free, fast, client-side image processing with real-time preview.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Blue Noise, ASCII & LED image tools",
-      },
-    ],
+      "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
     locale: "en_US",
-    siteName: "Blue Noise Dither",
-    title: "Blue Noise, ASCII & LED - Image Art Tools",
+    siteName: "FX",
+    title: "FX — Dither, ASCII & LED for Images & Video",
     type: "website",
-    url: "https://blue-noise.blode.co",
+    url: "https://fx.blode.co",
   },
   publisher: "Matthew Blode",
   robots: {
@@ -69,14 +64,13 @@ export const metadata: Metadata = {
     },
     index: true,
   },
-  title: "Blue Noise, ASCII & LED - Image Art Tools",
+  title: "FX — Dither, ASCII & LED for Images & Video",
   twitter: {
     card: "summary_large_image",
     creator: "@mattblode",
     description:
-      "Turn your images into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side processing.",
-    images: ["/og-image.png"],
-    title: "Blue Noise, ASCII & LED - Image Art Tools",
+      "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
+    title: "FX — Dither, ASCII & LED for Images & Video",
   },
   verification: {
     google: "mFwyBIbXTaKK4uF_NA0MzVWFyY40hPgBjFObg3rje04",
@@ -95,7 +89,7 @@ export const viewport: Viewport = {
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  alternateName: "Blue Noise Image Dithering Tool",
+  alternateName: "FX — Image & Video Effects",
   applicationCategory: "MultimediaApplication",
   author: {
     "@type": "Person",
@@ -104,10 +98,10 @@ const structuredData = {
   },
   browserRequirements:
     "Requires JavaScript. Modern browser with Canvas API support.",
-  dateModified: "2026-01-14",
+  dateModified: "2026-07-17",
   datePublished: "2026-01-14",
   description:
-    "Professional blue noise dithering application for high-quality image processing. Apply ordered dithering with real-time preview.",
+    "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
   featureList: [
     "Blue noise dithering",
     "ASCII art rendering",
@@ -118,16 +112,18 @@ const structuredData = {
     "Contrast adjustment",
     "Custom color selection",
     "Image resize options",
+    "Video processing",
+    "MP4 export with audio",
   ],
-  name: "Blue Noise Dither",
+  name: "FX",
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
   },
   operatingSystem: "Web Browser",
-  screenshot: "https://blue-noise.blode.co/og-image.png",
-  url: "https://blue-noise.blode.co",
+  screenshot: "https://fx.blode.co/opengraph-image.png",
+  url: "https://fx.blode.co",
 };
 
 export default function RootLayout({
@@ -138,7 +134,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" style={{ colorScheme: "light dark" }}>
       <head>
-        <meta content="Blue noise" name="apple-mobile-web-app-title" />
+        <meta content="FX" name="apple-mobile-web-app-title" />
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: Static Schema.org structured data
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

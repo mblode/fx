@@ -1,7 +1,7 @@
 {
-  "name": "Blue Noise Dither",
-  "short_name": "Blue Noise",
-  "description": "Apply professional blue noise dithering to your images online. Free, fast, client-side image processing tool.",
+  "name": "FX",
+  "short_name": "FX",
+  "description": "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

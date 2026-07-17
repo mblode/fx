@@ -4,23 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Blue Noise Dither is a Next.js 16 web application that applies high-quality blue noise dithering to images. It's a client-side image processing tool built with React 19, TypeScript, and Tailwind CSS v4.
+FX (fx.blode.co) is a Next.js 16 web application that renders images and video through one of three modes: blue noise dithering, ASCII art, or an LED dot matrix. It's a fully client-side media tool built with React 19, TypeScript, and Tailwind CSS v4.
 
 ## Development Commands
 
-- **Development server**: `npm run dev` (runs on http://localhost:3000)
+- **Development server**: `npm run dev` (via `portless`, which assigns the port)
 - **Production build**: `npm run build`
-- **Start production**: `npm start`
-- **Format/fix code**: `npm exec -- ultracite fix`
-- **Check code quality**: `npm exec -- ultracite check`
-- **Linting**: `npm run lint`
+- **Format/fix code**: `npm run format` (`ultracite fix`)
+- **Check code quality**: `npm run lint` (`ultracite check`)
+- **Type check**: `npm run check:types` (`tsc --noEmit`)
 
 ## Code Quality & Pre-commit
 
 The project uses **Ultracite** (a Biome-based preset) for formatting and linting, enforced via:
 
-- **Husky pre-commit hook**: Automatically runs `npx ultracite fix` on staged files via lint-staged
-- Always run `npm exec -- ultracite fix` before committing if not using the hook
+- **Lefthook pre-commit hook** (`lefthook.yml`): runs `ultracite fix` on staged files. `npm run prepare` installs it.
+- Always run `npm run format` before committing if not using the hook
 
 See AGENTS.md for detailed code standards (type safety, React patterns, accessibility requirements).
 
@@ -28,25 +27,24 @@ See AGENTS.md for detailed code standards (type safety, React patterns, accessib
 
 ### Application Structure
 
-- **Next.js App Router** (`app/`): Single-page application with client-side rendering
-  - `app/page.tsx`: Main dithering interface (uses `"use client"`)
-  - `app/layout.tsx`: Root layout with Geist fonts and metadata
+- **Next.js App Router** (`app/`): Single route, client-side rendering
+  - `app/page.tsx`: `StudioPage` — the whole interface (uses `"use client"`), wrapped in `<Suspense>` for nuqs
+  - `app/layout.tsx`: Root layout, metadata, JSON-LD, Google Analytics
+  - `app/globals.css`: Tailwind v4 config and the PP Neue Montreal `@font-face`
+
+- **Render modes** (`lib/mode.ts`): `RenderMode = "blue-noise" | "ascii" | "led"`, with display copy in `MODE_OPTIONS` and download suffixes in `MODE_FILENAME_SUFFIX`. Mode is synced to the URL as `?mode=` via nuqs.
 
 - **Component Organization**:
-  - `components/ui/`: Radix UI primitives (accordion, button, dialog, etc.) - styled with Tailwind and class-variance-authority
-  - `components/dither/`: Application-specific components
-    - `image-dropzone.tsx`: File upload via react-dropzone
-    - `controls-panel.tsx`: Dithering parameter controls
-    - `canvas-preview.tsx`: Side-by-side image preview
-    - `download-button.tsx`: Export dithered result
+  - `components/ui/`: Radix UI primitives - styled with Tailwind and class-variance-authority
+  - `components/app-sidebar.tsx`: mode switcher + the active mode's controls panel
+  - `components/dither/`: `controls-panel.tsx` (blue-noise params), `canvas-preview.tsx` (image preview, hold-to-compare), `video-preview.tsx` (play/pause/seek), `header-actions.tsx` (upload, download/export)
+  - `components/ascii/controls-panel.tsx`: ASCII/LED params (LED hides the color pickers)
 
-- **Core Logic** (`lib/dither/`):
-  - `types.ts`: TypeScript interfaces for `DitherParameters`, `NoiseTexture`, `RGB`
-  - `core.ts`: Main dithering algorithm (`applyDither` function)
-    - Loads and resizes images using Canvas API
-    - Converts to grayscale
-    - Applies blue noise threshold algorithm
-  - `utils.ts`: Helper functions (hex color conversion, contrast adjustment, wrapping)
+- **Core Logic**:
+  - `lib/dither/`: `types.ts` (`DitherParameters`, `NoiseTexture`, `RGB`, `MediaKind`), `core.ts` (`ditherImageData` — brightness → contrast → grayscale → blue-noise threshold → colorize), `utils.ts`, `video-export.ts` (WebCodecs + mp4-muxer, H.264 with audio re-mux)
+  - `lib/ascii/`: the ASCII/LED engine. `core.ts`, `sampling.ts`, `characters.ts`, `font-metrics.ts`, `lookup.ts`, `led.ts`. LED is the same pipeline with `ledMode: true`.
+  - `lib/workers/`: `dither-worker.ts` and `ascii-worker.ts` keep processing off the main thread
+  - `lib/frame-renderer.ts`: applies the active mode to a single frame (shared by image and video paths)
 
 - **Noise Textures** (`lib/noise/textures.ts`):
   - Pre-baked blue noise textures embedded as base64 data URLs (64×64, 128×128, 256×256)
@@ -54,38 +52,40 @@ See AGENTS.md for detailed code standards (type safety, React patterns, accessib
   - Large file (~292KB) due to embedded base64 images
 
 - **Custom Hooks** (`hooks/`):
-  - `use-dither.ts`: Core state management for the dithering workflow
-    - Manages uploaded image, parameters, and processing state
-    - Debounces parameter updates (300ms) for real-time preview
-    - Triggers dithering when image or parameters change
-  - `use-debounce.ts`: Generic debounce hook
-  - `use-mobile.ts`: Responsive breakpoint detection
+  - `use-dither.ts`: blue-noise state — parameters, processing state, debounced live preview
+  - `use-ascii.ts`: ASCII/LED state; supersamples output (2–3× by DPR) so glyphs stay crisp. Caps source at `MAX_IMAGE_DIMENSION` (1400px).
+  - `use-media-studio.ts`: video rAF render loop — play/pause, seek, duration, ready/error
+  - `use-upload.ts`: react-dropzone wiring; loads `/placeholder.jpg` on first paint so the studio is never empty
+  - `use-debounce.ts` / `use-throttle.ts`: generic timing hooks
+  - `use-mobile.ts`: responsive breakpoint detection
 
 ### Key Technologies
 
 - **Next.js 16** with React 19 (using React Compiler via `reactCompiler: true`)
-- **TypeScript 5** with strict mode and `@/*` path aliases
+- **TypeScript** with strict mode and `@/*` path aliases
 - **Tailwind CSS v4** with PostCSS
 - **Radix UI** for accessible component primitives
-- **react-hook-form** + **Zod** for form validation
-- **Sonner** for toast notifications
+- **nuqs** for URL-synced state (`?mode=`)
+- **react-colorful** for color pickers, **react-dropzone** for uploads
+- **mp4-muxer** + WebCodecs for MP4 export
 
 ### Dithering Algorithm
 
-The core algorithm (in `lib/dither/core.ts:60-140`) implements ordered dithering with blue noise:
+`ditherImageData` in `lib/dither/core.ts` implements ordered dithering with blue noise:
 
-1. Load and optionally resize the input image
-2. Apply contrast adjustment if specified
-3. Convert to grayscale (simple RGB average)
-4. For each pixel, compare grayscale value to corresponding blue noise threshold
-5. Output foreground or background color based on comparison
+1. Apply brightness, then contrast
+2. Convert to grayscale (simple RGB average)
+3. For each pixel, compare grayscale value to the corresponding blue noise threshold
+4. Output foreground or background color based on the comparison
+5. Optionally upscale (nearest-neighbor) by `pixelSize`
 
-Blue noise textures are tiled using a wrap function to handle images larger than the noise texture.
+Blue noise textures are tiled using a wrap function to handle images larger than the noise texture. Textures are pre-baked at 64/128/256; the app hardcodes 256 and does not expose the size in the UI.
 
 ## Important Notes
 
-- **Client-side only**: All image processing happens in the browser (no server-side API)
-- **Canvas API**: Heavy use of `HTMLCanvasElement` and `ImageData` for image manipulation
-- **React 19**: Uses ref as a prop (no `React.forwardRef`)
-- **Base64 textures**: `lib/noise/textures.ts` is very large due to embedded noise patterns - avoid reading the entire file
-- **Husky setup**: `npm run prepare` initializes git hooks
+- **Client-side only**: all processing happens in the browser (no server-side API)
+- **Images and video**: `MediaKind = "image" | "video"`. Video previews live and exports to H.264 MP4 with the original audio re-muxed. Webcam capture and live recording were removed and should not be reintroduced without cause.
+- **Canvas API**: heavy use of `HTMLCanvasElement` and `ImageData`
+- **React 19**: uses ref as a prop (no `React.forwardRef`)
+- **Base64 textures**: `lib/noise/textures.ts` is very large (~292KB) due to embedded noise patterns - avoid reading the entire file
+- **Naming**: the product is **FX**; `"blue-noise"` names one render mode and the algorithm, not the app. Don't conflate them.
