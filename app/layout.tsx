@@ -1,6 +1,7 @@
-import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
+import { preload } from "react-dom";
 
+import { Analytics } from "@/components/analytics";
 import { CraftedBy } from "@/components/crafted-by";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
@@ -173,6 +174,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The @font-face lives in globals.css, so the browser only discovers the file
+  // after the stylesheet parses. Preloading starts it during HTML parse instead.
+  // crossOrigin is required even same-origin: fonts fetch in CORS mode, and
+  // without it the preload misses and the font is fetched twice.
+  preload("/fonts/PPNeueMontreal-Variable.woff2", {
+    as: "font",
+    crossOrigin: "anonymous",
+    type: "font/woff2",
+  });
+
   return (
     <html className="h-full" lang="en" style={{ colorScheme: "light dark" }}>
       <head>
@@ -184,7 +195,7 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full antialiased">
-        <GoogleAnalytics gaId="G-61F273Q9JP" />
+        <Analytics gaId="G-61F273Q9JP" />
         <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
         <footer className="pointer-events-none fixed right-3 bottom-3 z-10 flex justify-end">
           <span className="pointer-events-auto">

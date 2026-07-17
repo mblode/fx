@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { preload } from "react-dom";
 
 import { Studio } from "@/components/studio";
 import { MODE_OPTIONS } from "@/lib/mode";
@@ -8,6 +9,12 @@ import { MODE_OPTIONS } from "@/lib/mode";
 // from the served HTML. The heading and summary live out here so the page
 // ships a real document to crawlers and assistive tech, not an empty shell.
 export default function Page() {
+  // useUpload fetches this on mount to seed the studio, so the request can't
+  // start until the JS has downloaded, parsed, and hydrated — then decode and
+  // dither still have to run before anything paints. Preloading moves the fetch
+  // to HTML parse so it happens alongside the JS download rather than after it.
+  preload("/placeholder.jpg", { as: "image", fetchPriority: "high" });
+
   return (
     <>
       <h1 className="sr-only">
