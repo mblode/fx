@@ -3,6 +3,15 @@ import type { Metadata, Viewport } from "next";
 
 import { CraftedBy } from "@/components/crafted-by";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
+import {
+  applicationId,
+  organizationId,
+  personId,
+  siteDescription,
+  siteName,
+  siteUrl,
+  websiteId,
+} from "@/lib/site";
 
 import "./globals.css";
 
@@ -18,8 +27,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Matthew Blode", url: "https://matthewblode.com" }],
   category: "technology",
   creator: "Matthew Blode",
-  description:
-    "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
+  description: siteDescription,
   icons: {
     apple: [{ url: "/apple-icon.png" }],
     icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
@@ -42,15 +50,14 @@ export const metadata: Metadata = {
     "ascii art video",
   ],
   manifest: "/manifest.json",
-  metadataBase: new URL("https://fx.blode.co"),
+  metadataBase: new URL(siteUrl),
   openGraph: {
-    description:
-      "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
+    description: siteDescription,
     locale: "en_US",
-    siteName: "FX",
+    siteName,
     title: "FX — Dither, ASCII & LED for Images & Video",
     type: "website",
-    url: "https://fx.blode.co",
+    url: siteUrl,
   },
   publisher: "Matthew Blode",
   robots: {
@@ -68,8 +75,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     creator: "@mattblode",
-    description:
-      "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
+    description: siteDescription,
     title: "FX — Dither, ASCII & LED for Images & Video",
   },
   verification: {
@@ -86,44 +92,80 @@ export const viewport: Viewport = {
   width: "device-width",
 };
 
+// One @graph, each entity defined once with a stable @id and referenced by @id
+// elsewhere, so crawlers resolve a single connected graph rather than repeated
+// disconnected snippets.
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  alternateName: "FX — Image & Video Effects",
-  applicationCategory: "MultimediaApplication",
-  author: {
-    "@type": "Person",
-    email: "m@blode.co",
-    name: "Matthew Blode",
-  },
-  browserRequirements:
-    "Requires JavaScript. Modern browser with Canvas API support.",
-  dateModified: "2026-07-17",
-  datePublished: "2026-01-14",
-  description:
-    "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.",
-  featureList: [
-    "Blue noise dithering",
-    "ASCII art rendering",
-    "LED dot-matrix rendering",
-    "Real-time preview",
-    "Client-side processing",
-    "Brightness adjustment",
-    "Contrast adjustment",
-    "Custom color selection",
-    "Image resize options",
-    "Video processing",
-    "MP4 export with audio",
+  "@graph": [
+    {
+      "@id": personId,
+      "@type": "Person",
+      email: "m@blode.co",
+      name: "Matthew Blode",
+      sameAs: ["https://matthewblode.com", "https://github.com/mblode"],
+      url: "https://matthewblode.com",
+    },
+    {
+      "@id": organizationId,
+      "@type": "Organization",
+      founder: { "@id": personId },
+      logo: {
+        "@type": "ImageObject",
+        height: 512,
+        url: `${siteUrl}/web-app-manifest-512x512.png`,
+        width: 512,
+      },
+      name: siteName,
+      url: siteUrl,
+    },
+    {
+      "@id": websiteId,
+      "@type": "WebSite",
+      description: siteDescription,
+      inLanguage: "en",
+      name: siteName,
+      publisher: { "@id": organizationId },
+      url: siteUrl,
+    },
+    {
+      "@id": applicationId,
+      "@type": "WebApplication",
+      alternateName: "FX — Image & Video Effects",
+      applicationCategory: "MultimediaApplication",
+      author: { "@id": personId },
+      browserRequirements:
+        "Requires JavaScript. Modern browser with Canvas API support.",
+      dateModified: "2026-07-17",
+      datePublished: "2026-01-14",
+      description: siteDescription,
+      featureList: [
+        "Blue noise dithering",
+        "ASCII art rendering",
+        "LED dot-matrix rendering",
+        "Real-time preview",
+        "Client-side processing",
+        "Brightness adjustment",
+        "Contrast adjustment",
+        "Custom color selection",
+        "Image resize options",
+        "Video processing",
+        "MP4 export with audio",
+      ],
+      inLanguage: "en",
+      isPartOf: { "@id": websiteId },
+      name: siteName,
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      operatingSystem: "Web Browser",
+      publisher: { "@id": organizationId },
+      screenshot: `${siteUrl}/opengraph-image.png`,
+      url: siteUrl,
+    },
   ],
-  name: "FX",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  operatingSystem: "Web Browser",
-  screenshot: "https://fx.blode.co/opengraph-image.png",
-  url: "https://fx.blode.co",
 };
 
 export default function RootLayout({
