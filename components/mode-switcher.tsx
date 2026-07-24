@@ -36,14 +36,17 @@ export function ModeSwitcher({
       <PopoverTrigger asChild>
         <Button
           aria-label="Select render mode"
-          className={cn("justify-between", className)}
+          className={cn("justify-between active:scale-100", className)}
           variant="outline"
         >
           {modeLabel(mode)}
           <ChevronDownIcon aria-hidden className="size-4 shrink-0 opacity-60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-56 p-1">
+      <PopoverContent
+        align="start"
+        className="w-56 p-1 data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100"
+      >
         <ul role="listbox">
           {MODE_OPTIONS.map((option) => {
             const isActive = option.value === mode;
