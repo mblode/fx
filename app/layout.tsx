@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { preload } from "react-dom";
 
 import { Analytics } from "@/components/analytics";
-import { CraftedBy } from "@/components/crafted-by";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
   applicationId,
@@ -197,11 +196,6 @@ export default function RootLayout({
       <body className="h-full antialiased">
         <Analytics gaId="G-61F273Q9JP" />
         <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
-        <footer className="pointer-events-none fixed right-3 bottom-3 z-10 flex justify-end">
-          <span className="pointer-events-auto">
-            <CraftedBy />
-          </span>
-        </footer>
       </body>
     </html>
   );

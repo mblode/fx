@@ -48,8 +48,8 @@ export function AsciiControlsPanel({
     ? Math.floor(renderDimensions.height / cellHeight)
     : null;
 
-  // LED mode always renders red→white bars on black, so the color pickers
-  // have no effect and are hidden.
+  // LED mode uses its own fixed red-to-amber ramp with a baked-in bloom, so the
+  // color pickers have no effect and are hidden.
   const showColorControls = !ledMode;
 
   return (

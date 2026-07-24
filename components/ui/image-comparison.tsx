@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ImageComparisonProps {
   beforeImage: string;
@@ -10,6 +10,8 @@ interface ImageComparisonProps {
     width: number;
     height: number;
   };
+  /** Reports the displayed width in device pixels whenever it changes. */
+  onDisplayWidthChange?: (deviceWidth: number) => void;
 }
 
 export function ImageComparison({
@@ -17,7 +19,27 @@ export function ImageComparison({
   afterImage,
   showOriginal,
   dimensions,
+  onDisplayWidthChange,
 }: ImageComparisonProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Report the rendered box width (device pixels) so the source can be dithered
+  // at exactly the resolution it's shown at.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!(el && onDisplayWidthChange)) {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const cssWidth = entries[0]?.contentRect.width ?? 0;
+      if (cssWidth > 0) {
+        onDisplayWidthChange(cssWidth * (window.devicePixelRatio || 1));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onDisplayWidthChange]);
+
   const [measuredDimensions, setMeasuredDimensions] = useState<{
     width: number;
     height: number;
@@ -43,6 +65,7 @@ export function ImageComparison({
   return (
     <div
       className="relative max-h-[90vh] w-full max-w-full overflow-hidden rounded-lg shadow-sm"
+      ref={containerRef}
       style={{
         aspectRatio: `${measuredDimensions.width} / ${measuredDimensions.height}`,
       }}

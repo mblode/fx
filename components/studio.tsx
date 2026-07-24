@@ -66,6 +66,9 @@ export function Studio() {
 
   const [showOriginal, setShowOriginal] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [previewDeviceWidth, setPreviewDeviceWidth] = useState<number | null>(
+    null
+  );
 
   const isBlueNoise = mode === "blue-noise";
 
@@ -80,6 +83,7 @@ export function Studio() {
     !isBlueNoise && !isVideoFile(uploadedImage) ? uploadedImage : null;
 
   const dither = useDither({
+    displayWidth: previewDeviceWidth,
     enabled: isBlueNoise && stillImageEnabled,
     uploadedImage,
   });
@@ -183,19 +187,24 @@ export function Studio() {
     ? dither.isProcessing
     : ascii.isProcessing;
 
-  const handleDownloadImage = () => {
-    if (!activeDithered) {
+  const handleDownloadImage = async () => {
+    // The blue-noise preview is dithered at screen resolution, so re-render at
+    // the source resolution for the download. ASCII already renders full-size.
+    const image = isBlueNoise
+      ? await dither.renderForDownload()
+      : activeDithered;
+    if (!image) {
       return;
     }
 
     const canvas = document.createElement("canvas");
-    canvas.width = activeDithered.width;
-    canvas.height = activeDithered.height;
+    canvas.width = image.width;
+    canvas.height = image.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       return;
     }
-    ctx.putImageData(activeDithered, 0, 0);
+    ctx.putImageData(image, 0, 0);
 
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -333,6 +342,9 @@ export function Studio() {
                   isLoadingPlaceholder={isLoadingPlaceholder}
                   isProcessing={activeProcessing}
                   onBrowse={open}
+                  onDisplayWidthChange={
+                    isBlueNoise ? setPreviewDeviceWidth : undefined
+                  }
                   showOriginal={showOriginal}
                   uploadedImage={isBlueNoise ? uploadedImage : asciiSourceFile}
                 />
