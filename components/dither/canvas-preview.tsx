@@ -16,6 +16,8 @@ interface CanvasPreviewProps {
   isProcessing: boolean;
   showOriginal: boolean;
   onBrowse?: () => void;
+  /** Reports the preview's displayed width in device pixels. */
+  onDisplayWidthChange?: (deviceWidth: number) => void;
 }
 
 export function CanvasPreview({
@@ -25,6 +27,7 @@ export function CanvasPreview({
   isProcessing,
   showOriginal,
   onBrowse,
+  onDisplayWidthChange,
 }: CanvasPreviewProps) {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isHolding, setIsHolding] = useState(false);
@@ -154,6 +157,7 @@ export function CanvasPreview({
               afterImage={ditheredImageUrl}
               beforeImage={originalImageUrl}
               dimensions={comparisonDimensions ?? undefined}
+              onDisplayWidthChange={onDisplayWidthChange}
               showOriginal={effectiveShowOriginal}
             />
           </button>

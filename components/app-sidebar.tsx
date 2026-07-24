@@ -1,6 +1,7 @@
 "use client";
 
 import { AsciiControlsPanel } from "@/components/ascii/controls-panel";
+import { CraftedBy } from "@/components/crafted-by";
 import { ControlsPanel } from "@/components/dither/controls-panel";
 import { ModeSwitcher } from "@/components/mode-switcher";
 import {
@@ -72,7 +73,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="hidden px-2 md:flex">
+      <SidebarFooter className="hidden gap-2 px-2 md:flex">
         <nav aria-label="Related projects">
           <ul className="flex flex-col gap-1 text-muted-foreground text-sm">
             <li>
@@ -82,11 +83,12 @@ export function AppSidebar({
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                Source on GitHub
+                GitHub
               </a>
             </li>
           </ul>
         </nav>
+        <CraftedBy />
       </SidebarFooter>
     </Sidebar>
   );

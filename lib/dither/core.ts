@@ -168,9 +168,23 @@ export function ditherDrawable(
   sourceHeight: number,
   noise: NoiseTexture,
   params: DitherParameters,
-  scratch?: DitherScratch
+  scratch?: DitherScratch,
+  // When set, render at this exact output width (height kept to source aspect)
+  // instead of the params-derived size. Used to dither the live preview at the
+  // resolution it is actually displayed at, so the 1-bit result stays crisp
+  // rather than being fractionally rescaled by the browser.
+  outputWidth?: number
 ): ImageData {
-  const target = getTargetDimensions(sourceWidth, sourceHeight, params);
+  const target =
+    outputWidth && outputWidth > 0
+      ? {
+          height: Math.max(
+            1,
+            Math.round((outputWidth * sourceHeight) / sourceWidth)
+          ),
+          width: Math.max(1, Math.round(outputWidth)),
+        }
+      : getTargetDimensions(sourceWidth, sourceHeight, params);
   const pixelSize = Math.max(1, Math.floor(params.pixelSize));
   const ditherWidth = Math.max(1, Math.floor(target.width / pixelSize));
   const ditherHeight = Math.max(1, Math.floor(target.height / pixelSize));
@@ -196,8 +210,17 @@ export function ditherDrawable(
 export async function applyDither(
   imageFile: File,
   noise: NoiseTexture,
-  params: DitherParameters
+  params: DitherParameters,
+  outputWidth?: number
 ): Promise<ImageData> {
   const img = await loadImage(imageFile);
-  return ditherDrawable(img, img.width, img.height, noise, params);
+  return ditherDrawable(
+    img,
+    img.width,
+    img.height,
+    noise,
+    params,
+    undefined,
+    outputWidth
+  );
 }
