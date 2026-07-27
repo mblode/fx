@@ -2,7 +2,7 @@
 
 Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix — right in your browser.
 
-**→ [fx.blode.co](https://fx.blode.co)**
+**→ [fx.blode.co](https://blode.co/fx)**
 
 Drop in a photo or a clip, pick a mode, and tune the look in real time. Free, no sign-up, and your files never leave your device.
 
@@ -30,4 +30,4 @@ Everything runs in your browser. Nothing is uploaded, stored, or sent anywhere.
 
 ---
 
-Crafted by [<img src="https://matthewblode.com/avatar-circle.png" width="20" align="top" />](https://matthewblode.com) [Matthew Blode](https://matthewblode.com)
+Crafted by [<img src="https://blode.co/avatar-circle.png" width="20" align="top" />](https://blode.co) [Matthew Blode](https://blode.co)

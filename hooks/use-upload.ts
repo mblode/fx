@@ -22,7 +22,7 @@ export function useUpload() {
 
     const loadPlaceholder = async () => {
       try {
-        const response = await fetch("/placeholder.jpg");
+        const response = await fetch("/fx/placeholder.jpg");
         const blob = await response.blob();
         const file = new File([blob], "placeholder.jpg", { type: blob.type });
         setUploadedImage(file);
