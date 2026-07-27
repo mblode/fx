@@ -189,7 +189,7 @@ export default function RootLayout({
     <html className="h-full" lang="en" style={{ colorScheme: "light dark" }}>
       <head>
         <meta content="FX" name="apple-mobile-web-app-title" />
-        <link href="https://r.blode.co" rel="preconnect" />
+        <link href={process.env.NEXT_PUBLIC_POSTHOG_HOST} rel="preconnect" />
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: Static Schema.org structured data
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
