@@ -7,15 +7,20 @@ import type { NextConfig } from "next";
 //   + object URLs for previews and PNG/MP4 export.
 // - us-assets.i.posthog.com / us.i.posthog.com: the PostHog snippet and its
 //   ingestion endpoint.
+// - us.posthog.com: the PostHog toolbar calls the app host, not ingestion, and
+//   pulls its stylesheet/assets from us-assets. internal-j.posthog.com is
+//   deliberately left out: that's PostHog's own telemetry about the toolbar,
+//   and blocking it costs us nothing.
+const PH_ASSETS = "https://us-assets.i.posthog.com";
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `script-src 'self' 'unsafe-inline' ${PH_ASSETS}`,
+  `style-src 'self' 'unsafe-inline' ${PH_ASSETS}`,
+  `img-src 'self' data: blob: ${PH_ASSETS}`,
   "media-src 'self' blob: data:",
   "worker-src 'self' blob:",
-  "font-src 'self'",
-  "connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com",
+  `font-src 'self' ${PH_ASSETS}`,
+  `connect-src 'self' https://us.i.posthog.com ${PH_ASSETS} https://us.posthog.com`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
