@@ -9,7 +9,7 @@ export const siteDescription =
 // Public client-side token, safe to ship. Hardcoded so every zone app shares
 // one project without 30 separate Vercel env vars.
 export const posthogKey = "phc_yYatHXysbRxjTyfmyCKSUyMSQpgepJPuxegz2HtpfX35";
-export const posthogHost = "https://us.i.posthog.com";
+export const posthogHost = "https://r.blode.co";
 
 /** Stable JSON-LD node ids, referenced by @id rather than duplicated inline. */
 export const personId = `${siteUrl}/#person`;
