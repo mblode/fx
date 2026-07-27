@@ -5,16 +5,17 @@ import type { NextConfig } from "next";
 //   are inline; a nonce would need middleware on an otherwise static site.
 // - blob:/data: on img/media/worker: the whole pipeline is canvas + Web Workers
 //   + object URLs for previews and PNG/MP4 export.
-// - googletagmanager/google-analytics: the GA4 tag.
+// - us-assets.i.posthog.com / us.i.posthog.com: the PostHog snippet and its
+//   ingestion endpoint.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+  "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com",
+  "img-src 'self' data: blob:",
   "media-src 'self' blob: data:",
   "worker-src 'self' blob:",
   "font-src 'self'",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+  "connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -22,6 +23,8 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  assetPrefix: "/fx",
+  basePath: "/fx",
   reactCompiler: true,
 
   // TypeScript 7's compiler API moved to typescript/unstable/*, which Next's
@@ -68,6 +71,26 @@ const nextConfig: NextConfig = {
         source: "/manifest.json",
       },
     ];
+  },
+  redirects() {
+    return Promise.resolve(
+      ["blue-noise.blode.co", "fx.blode.co"].flatMap((host) => [
+        {
+          basePath: false as const,
+          destination: "https://blode.co/fx",
+          has: [{ type: "host" as const, value: host }],
+          permanent: true,
+          source: "/",
+        },
+        {
+          basePath: false as const,
+          destination: "https://blode.co/fx/:path*",
+          has: [{ type: "host" as const, value: host }],
+          permanent: true,
+          source: "/:path*",
+        },
+      ])
+    );
   },
 };
 

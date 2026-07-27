@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { preload } from "react-dom";
 
-import { Analytics } from "@/components/analytics";
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
   applicationId,
@@ -17,20 +16,23 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: "/",
+    canonical: siteUrl,
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "FX",
   },
-  authors: [{ name: "Matthew Blode", url: "https://matthewblode.com" }],
+  authors: [{ name: "Matthew Blode", url: "https://blode.co" }],
   category: "technology",
   creator: "Matthew Blode",
   description: siteDescription,
   icons: {
-    apple: [{ url: "/apple-icon.png" }],
-    icon: [{ url: "/favicon.ico" }, { url: "/icon1.png", type: "image/png" }],
+    apple: [{ url: "/fx/apple-icon.png" }],
+    icon: [
+      { url: "/fx/favicon.ico" },
+      { url: "/fx/icon1.png", type: "image/png" },
+    ],
   },
   keywords: [
     "blue noise",
@@ -49,8 +51,8 @@ export const metadata: Metadata = {
     "dither video",
     "ascii art video",
   ],
-  manifest: "/manifest.json",
-  metadataBase: new URL(siteUrl),
+  manifest: "/fx/manifest.json",
+  metadataBase: new URL("https://blode.co"),
   openGraph: {
     description: siteDescription,
     locale: "en_US",
@@ -103,8 +105,8 @@ const structuredData = {
       "@type": "Person",
       email: "m@blode.co",
       name: "Matthew Blode",
-      sameAs: ["https://matthewblode.com", "https://github.com/mblode"],
-      url: "https://matthewblode.com",
+      sameAs: ["https://blode.co", "https://github.com/mblode"],
+      url: "https://blode.co",
     },
     {
       "@id": organizationId,
@@ -177,7 +179,7 @@ export default function RootLayout({
   // after the stylesheet parses. Preloading starts it during HTML parse instead.
   // crossOrigin is required even same-origin: fonts fetch in CORS mode, and
   // without it the preload misses and the font is fetched twice.
-  preload("/fonts/PPNeueMontreal-Variable.woff2", {
+  preload("/fx/fonts/PPNeueMontreal-Variable.woff2", {
     as: "font",
     crossOrigin: "anonymous",
     type: "font/woff2",
@@ -187,6 +189,8 @@ export default function RootLayout({
     <html className="h-full" lang="en" style={{ colorScheme: "light dark" }}>
       <head>
         <meta content="FX" name="apple-mobile-web-app-title" />
+        <link href="https://us.i.posthog.com" rel="preconnect" />
+        <link href="https://us-assets.i.posthog.com" rel="dns-prefetch" />
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: Static Schema.org structured data
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -194,7 +198,6 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full antialiased">
-        <Analytics gaId="G-61F273Q9JP" />
         <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
       </body>
     </html>

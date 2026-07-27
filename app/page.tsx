@@ -13,7 +13,7 @@ export default function Page() {
   // start until the JS has downloaded, parsed, and hydrated — then decode and
   // dither still have to run before anything paints. Preloading moves the fetch
   // to HTML parse so it happens alongside the JS download rather than after it.
-  preload("/placeholder.jpg", { as: "image", fetchPriority: "high" });
+  preload("/fx/placeholder.jpg", { as: "image", fetchPriority: "high" });
 
   return (
     <>

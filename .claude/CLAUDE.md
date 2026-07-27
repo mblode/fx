@@ -29,7 +29,8 @@ See AGENTS.md for detailed code standards (type safety, React patterns, accessib
 
 - **Next.js App Router** (`app/`): Single route, client-side rendering
   - `app/page.tsx`: `StudioPage` — the whole interface (uses `"use client"`), wrapped in `<Suspense>` for nuqs
-  - `app/layout.tsx`: Root layout, metadata, JSON-LD, Google Analytics
+  - `app/layout.tsx`: Root layout, metadata, JSON-LD
+  - `instrumentation-client.ts`: PostHog analytics init
   - `app/globals.css`: Tailwind v4 config and the PP Neue Montreal `@font-face`
 
 - **Render modes** (`lib/mode.ts`): `RenderMode = "blue-noise" | "ascii" | "led"`, with display copy in `MODE_OPTIONS` and download suffixes in `MODE_FILENAME_SUFFIX`. Mode is synced to the URL as `?mode=` via nuqs.
