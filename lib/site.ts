@@ -9,7 +9,10 @@ export const siteDescription =
 // Public client-side token, safe to ship. Hardcoded so every zone app shares
 // one project without 30 separate Vercel env vars.
 export const posthogKey = "phc_yYatHXysbRxjTyfmyCKSUyMSQpgepJPuxegz2HtpfX35";
-export const posthogHost = "https://r.blode.co";
+// Set per Vercel project to our own reverse proxy, so ad blockers and tracker
+// lists that block *.posthog.com do not drop analytics. Unset falls back to
+// posthog-js's own default ingestion host.
+export const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
 /** Stable JSON-LD node ids, referenced by @id rather than duplicated inline. */
 export const personId = `${siteUrl}/#person`;

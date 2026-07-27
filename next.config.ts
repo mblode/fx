@@ -5,12 +5,12 @@ import type { NextConfig } from "next";
 //   are inline; a nonce would need middleware on an otherwise static site.
 // - blob:/data: on img/media/worker: the whole pipeline is canvas + Web Workers
 //   + object URLs for previews and PNG/MP4 export.
-// - r.blode.co: our reverse proxy in front of PostHog, serving both the
-//   snippet's assets and the ingestion endpoint.
+// - NEXT_PUBLIC_POSTHOG_HOST: our reverse proxy in front of PostHog, serving
+//   both the snippet's assets and the ingestion endpoint.
 // - us.posthog.com: the PostHog toolbar calls the app host, not ingestion.
 //   internal-j.posthog.com is deliberately left out: that's PostHog's own
 //   telemetry about the toolbar, and blocking it costs us nothing.
-const PH_PROXY = "https://r.blode.co";
+const PH_PROXY = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "";
 const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' ${PH_PROXY}`,
