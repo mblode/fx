@@ -5,22 +5,21 @@ import type { NextConfig } from "next";
 //   are inline; a nonce would need middleware on an otherwise static site.
 // - blob:/data: on img/media/worker: the whole pipeline is canvas + Web Workers
 //   + object URLs for previews and PNG/MP4 export.
-// - us-assets.i.posthog.com / us.i.posthog.com: the PostHog snippet and its
-//   ingestion endpoint.
-// - us.posthog.com: the PostHog toolbar calls the app host, not ingestion, and
-//   pulls its stylesheet/assets from us-assets. internal-j.posthog.com is
-//   deliberately left out: that's PostHog's own telemetry about the toolbar,
-//   and blocking it costs us nothing.
-const PH_ASSETS = "https://us-assets.i.posthog.com";
+// - r.blode.co: our reverse proxy in front of PostHog, serving both the
+//   snippet's assets and the ingestion endpoint.
+// - us.posthog.com: the PostHog toolbar calls the app host, not ingestion.
+//   internal-j.posthog.com is deliberately left out: that's PostHog's own
+//   telemetry about the toolbar, and blocking it costs us nothing.
+const PH_PROXY = "https://r.blode.co";
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${PH_ASSETS}`,
-  `style-src 'self' 'unsafe-inline' ${PH_ASSETS}`,
-  `img-src 'self' data: blob: ${PH_ASSETS}`,
+  `script-src 'self' 'unsafe-inline' ${PH_PROXY}`,
+  `style-src 'self' 'unsafe-inline' ${PH_PROXY}`,
+  `img-src 'self' data: blob: ${PH_PROXY}`,
   "media-src 'self' blob: data:",
   "worker-src 'self' blob:",
-  `font-src 'self' ${PH_ASSETS}`,
-  `connect-src 'self' https://us.i.posthog.com ${PH_ASSETS} https://us.posthog.com`,
+  `font-src 'self' ${PH_PROXY}`,
+  `connect-src 'self' ${PH_PROXY} https://us.posthog.com`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
