@@ -18,4 +18,4 @@ export const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 export const personId = `${siteUrl}/#person`;
 export const organizationId = `${siteUrl}/#organization`;
 export const websiteId = `${siteUrl}/#website`;
-export const applicationId = `${siteUrl}/#webapp`;
+export const webPageId = `${siteUrl}/#webpage`;
