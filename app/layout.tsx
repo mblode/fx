@@ -3,7 +3,7 @@ import { preload } from "react-dom";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
-  applicationId,
+  webPageId,
   organizationId,
   personId,
   siteDescription,
@@ -130,18 +130,29 @@ const structuredData = {
       publisher: { "@id": organizationId },
       url: siteUrl,
     },
+    /*
+     * A WebPage, not a WebApplication. WebApplication is a SoftwareApplication
+     * subtype, so validators hold it to Google's Software App rich result, which
+     * requires aggregateRating or review. The only ratings available to us are
+     * ones we would write about our own tool, and Google's review policy
+     * forbids exactly that, so the node could never pass as typed.
+     *
+     * The capability list survives as `keywords`, which is valid here and is
+     * what AI crawlers read anyway. `browserRequirements` and
+     * `applicationCategory` do not exist outside SoftwareApplication and are
+     * dropped rather than misapplied.
+     */
     {
-      "@id": applicationId,
-      "@type": "WebApplication",
+      "@id": webPageId,
+      "@type": "WebPage",
       alternateName: "FX — Image & Video Effects",
-      applicationCategory: "MultimediaApplication",
       author: { "@id": personId },
-      browserRequirements:
-        "Requires JavaScript. Modern browser with Canvas API support.",
       dateModified: "2026-07-17",
       datePublished: "2026-01-14",
       description: siteDescription,
-      featureList: [
+      inLanguage: "en",
+      isPartOf: { "@id": websiteId },
+      keywords: [
         "Blue noise dithering",
         "ASCII art rendering",
         "LED dot-matrix rendering",
@@ -154,17 +165,15 @@ const structuredData = {
         "Video processing",
         "MP4 export with audio",
       ],
-      inLanguage: "en",
-      isPartOf: { "@id": websiteId },
       name: siteName,
       offers: {
         "@type": "Offer",
+        category: "Free",
         price: "0",
         priceCurrency: "USD",
       },
-      operatingSystem: "Web Browser",
+      primaryImageOfPage: `${siteUrl}/opengraph-image.png`,
       publisher: { "@id": organizationId },
-      screenshot: `${siteUrl}/opengraph-image.png`,
       url: siteUrl,
     },
   ],
