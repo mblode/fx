@@ -33,6 +33,21 @@ export default function Page() {
           </li>
         ))}
       </ul>
+      {/*
+        The sidebar already shows a "Crafted by" link, but it lives inside
+        Studio, which does not server-render — so the 28 Jul crawl saw a page
+        with no outgoing links at all. Same content, emitted server-side, and
+        sr-only to match the block above rather than duplicate visible chrome.
+      */}
+      <nav aria-label="About this project" className="sr-only">
+        <a href="https://github.com/mblode/fx" rel="noopener">
+          FX source on GitHub
+        </a>
+        <a href="https://blode.co/projects">More projects by Matthew Blode</a>
+        <a href="https://blode.co" rel="author">
+          Crafted by Matthew Blode
+        </a>
+      </nav>
       <Suspense>
         <Studio />
       </Suspense>
