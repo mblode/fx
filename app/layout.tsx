@@ -172,7 +172,14 @@ const structuredData = {
         price: "0",
         priceCurrency: "USD",
       },
-      primaryImageOfPage: `${siteUrl}/opengraph-image.png`,
+      // primaryImageOfPage ranges over ImageObject. A bare URL string is a
+      // literal, not a node reference, so it fails schema.org validation.
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        height: 630,
+        url: `${siteUrl}/opengraph-image.png`,
+        width: 1200,
+      },
       publisher: { "@id": organizationId },
       url: siteUrl,
     },
