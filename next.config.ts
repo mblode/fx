@@ -36,13 +36,6 @@ const nextConfig: NextConfig = {
     turbopackRustReactCompiler: true,
   },
 
-  // TypeScript 7's compiler API moved to typescript/unstable/*, which Next's
-  // built-in inline type check can't load. `tsc --noEmit` (check:types) is the
-  // real type gate; this only disables Next's redundant check.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   // Compression for better performance
   compress: true,
 
