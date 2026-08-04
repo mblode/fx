@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
   assetPrefix: "/fx",
   basePath: "/fx",
   reactCompiler: true,
+  experimental: {
+    // Runs the React Compiler in Turbopack's Rust pipeline, so the build no
+    // longer needs the Babel plugin.
+    turbopackRustReactCompiler: true,
+  },
 
   // TypeScript 7's compiler API moved to typescript/unstable/*, which Next's
   // built-in inline type check can't load. `tsc --noEmit` (check:types) is the
