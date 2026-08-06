@@ -1,10 +1,22 @@
-# FX
+<div align="center">
 
-Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix — right in your browser.
+# [FX](https://blode.co/fx)
 
-**→ [fx.blode.co](https://blode.co/fx)**
+**Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix, right in your browser**
 
-Drop in a photo or a clip, pick a mode, and tune the look in real time. Free, no sign-up, and your files never leave your device.
+Drop in a photo or a clip, pick a mode, and tune the look in real time.
+
+</div>
+
+## Demo
+
+Drop in a file and try all three modes, free and with no sign-up.
+
+<p>
+<a href="https://blode.co/fx">
+<img alt="View demo" src=".github/assets/demo.svg" width="200" />
+</a>
+</p>
 
 ## Modes
 
@@ -26,7 +38,7 @@ Everything runs in your browser. Nothing is uploaded, stored, or sent anywhere.
 
 ## License
 
-[MIT](./LICENSE) © Matthew Blode
+MIT
 
 ---
 
