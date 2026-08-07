@@ -8,6 +8,10 @@ Drop in a photo or a clip, pick a mode, and tune the look in real time.
 
 </div>
 
+<p align="center">
+  <img alt="A photo dithered with blue noise, with the foreground colour, brightness and scale controls alongside" src=".github/assets/screenshot.jpg" width="800" />
+</p>
+
 ## Demo
 
 Drop in a file and try all three modes, free and with no sign-up.
