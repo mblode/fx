@@ -9,7 +9,8 @@ Drop in a photo or a clip, pick a mode, and tune the look in real time.
 </div>
 
 <p align="center">
-  <img alt="A photo dithered with blue noise, with the foreground colour, brightness and scale controls alongside" src=".github/assets/screenshot.jpg" width="800" />
+  <img alt="Source photograph" src=".github/assets/source.png" width="320" />
+  <img alt="The same photograph dithered with blue noise" src=".github/assets/dithered.jpg" width="320" />
 </p>
 
 ## Demo
@@ -18,7 +19,7 @@ Drop in a file and try all three modes, free and with no sign-up.
 
 <p>
 <a href="https://blode.co/fx">
-<img alt="View demo" src=".github/assets/demo.svg" width="200" />
+<img alt="Try it" src=".github/assets/demo.svg" width="200" />
 </a>
 </p>
 
