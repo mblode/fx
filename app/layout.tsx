@@ -3,6 +3,8 @@ import { preload } from "react-dom";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
+  breadcrumbId,
+  breadcrumbJsonLd,
   webPageId,
   organizationId,
   personId,
@@ -100,36 +102,6 @@ export const viewport: Viewport = {
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@id": personId,
-      "@type": "Person",
-      email: "m@blode.co",
-      name: "Matthew Blode",
-      sameAs: ["https://blode.co", "https://github.com/mblode"],
-      url: "https://blode.co",
-    },
-    {
-      "@id": organizationId,
-      "@type": "Organization",
-      founder: { "@id": personId },
-      logo: {
-        "@type": "ImageObject",
-        height: 512,
-        url: `${siteUrl}/web-app-manifest-512x512.png`,
-        width: 512,
-      },
-      name: siteName,
-      url: siteUrl,
-    },
-    {
-      "@id": websiteId,
-      "@type": "WebSite",
-      description: siteDescription,
-      inLanguage: "en",
-      name: siteName,
-      publisher: { "@id": organizationId },
-      url: siteUrl,
-    },
     /*
      * A WebPage, not a WebApplication. WebApplication is a SoftwareApplication
      * subtype, so validators hold it to Google's Software App rich result, which
@@ -182,7 +154,9 @@ const structuredData = {
       },
       publisher: { "@id": organizationId },
       url: siteUrl,
+      breadcrumb: { "@id": breadcrumbId },
     },
+    breadcrumbJsonLd,
   ],
 };
 
