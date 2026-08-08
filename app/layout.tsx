@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { preload } from "react-dom";
+import localFont from "next/font/local";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import {
@@ -16,6 +16,23 @@ import {
 
 import "./globals.css";
 
+const glide = localFont({
+  src: [
+    { path: "./fonts/glide-variable.woff2", style: "normal" },
+    { path: "./fonts/glide-variable-italic.woff2", style: "italic" },
+  ],
+  variable: "--font-glide",
+  weight: "100 950",
+  display: "swap",
+});
+
+const glideMono = localFont({
+  src: "./fonts/glide-mono.woff2",
+  variable: "--font-glide-mono",
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
@@ -31,10 +48,7 @@ export const metadata: Metadata = {
   description: siteDescription,
   icons: {
     apple: [{ url: "/fx/apple-icon.png" }],
-    icon: [
-      { url: "/fx/favicon.ico" },
-      { url: "/fx/icon1.png", type: "image/png" },
-    ],
+    icon: [{ url: "/fx/icon.svg", type: "image/svg+xml" }],
   },
   keywords: [
     "blue noise",
@@ -165,18 +179,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // The @font-face lives in globals.css, so the browser only discovers the file
-  // after the stylesheet parses. Preloading starts it during HTML parse instead.
-  // crossOrigin is required even same-origin: fonts fetch in CORS mode, and
-  // without it the preload misses and the font is fetched twice.
-  preload("/fx/fonts/PPNeueMontreal-Variable.woff2", {
-    as: "font",
-    crossOrigin: "anonymous",
-    type: "font/woff2",
-  });
-
   return (
-    <html className="h-full" lang="en" style={{ colorScheme: "light dark" }}>
+    <html
+      className={`h-full ${glide.variable} ${glideMono.variable}`}
+      lang="en"
+      style={{ colorScheme: "light dark" }}
+    >
       <head>
         <meta content="FX" name="apple-mobile-web-app-title" />
         <link href={process.env.NEXT_PUBLIC_POSTHOG_HOST} rel="preconnect" />
