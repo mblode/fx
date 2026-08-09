@@ -122,6 +122,20 @@
     @apply border-border outline-ring/50;
   }
 
+  /*
+   * The zone breadcrumb strip in app/layout.tsx sits above the whole app
+   * shell. The desktop sidebar panel is `fixed inset-y-0`, so it is pinned to
+   * the viewport top and would paint straight over the strip; this offsets it
+   * instead. One variable so the strip's height and the offset cannot drift.
+   */
+  :root {
+    --zone-trail-height: 2.75rem;
+  }
+
+  [data-slot="sidebar-container"] {
+    top: var(--zone-trail-height);
+  }
+
   body {
     @apply bg-background text-foreground leading-normal;
     line-height: 1.5;

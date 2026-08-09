@@ -3,6 +3,17 @@ export const siteUrl = "https://blode.co/fx";
 
 export const siteName = "FX";
 
+/** Product first, then a colon, under 60 characters. Not a pipe, not a dash. */
+export const siteTitle =
+  "FX: dither, ASCII and LED effects for images and video";
+
+/**
+ * og:site_name is the person, not the product, on every blode.co path. The 33
+ * zones are one site; the product name is already in og:title, so this is the
+ * only slot in the card that can say who made the thing. Rule 9.
+ */
+export const ogSiteName = "Matthew Blode";
+
 export const siteDescription =
   "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.";
 
@@ -33,11 +44,22 @@ export const websiteId = `${host}/#website`;
 export const webPageId = `${siteUrl}/#webpage`;
 export const breadcrumbId = `${siteUrl}/#breadcrumb`;
 
+/**
+ * The root crumb is named for the person, not "Home": it is the one piece of
+ * chrome every zone shows above the fold. `components/zone-breadcrumb` renders
+ * the same trail visibly, and Google treats a mismatch between the two as a
+ * markup error, so change them together.
+ */
 export const breadcrumbJsonLd = {
   "@id": breadcrumbId,
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", item: `${host}/`, name: "Home", position: 1 },
+    {
+      "@type": "ListItem",
+      item: `${host}/`,
+      name: "Matthew Blode",
+      position: 1,
+    },
     {
       "@type": "ListItem",
       item: `${host}/projects`,
