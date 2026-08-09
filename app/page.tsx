@@ -18,7 +18,7 @@ export default function Page() {
   return (
     <>
       <h1 className="sr-only">
-        FX — dither, ASCII and LED tools for images and video
+        FX: dither, ASCII and LED tools for images and video
       </h1>
       <p className="sr-only">
         FX renders images and video in your browser using one of three modes:
@@ -38,16 +38,20 @@ export default function Page() {
         Studio, which does not server-render — so the 28 Jul crawl saw a page
         with no outgoing links at all. Same content, emitted server-side, and
         sr-only to match the block above rather than duplicate visible chrome.
+
+        A real <footer>, not a <nav>: these are the host edges, and Rule 1 asks
+        for a contentinfo landmark. blode.co is this same origin behind a
+        rewrite, so both of its links stay in the tab with no noopener.
       */}
-      <nav aria-label="About this project" className="sr-only">
-        <a href="https://github.com/mblode/fx" rel="noopener">
-          FX source on GitHub
-        </a>
-        <a href="https://blode.co/projects">More projects by Matthew Blode</a>
+      <footer className="sr-only">
         <a href="https://blode.co" rel="author">
           Crafted by Matthew Blode
         </a>
-      </nav>
+        <a href="https://blode.co/projects">More projects by Matthew Blode</a>
+        <a href="https://github.com/mblode/fx" rel="noopener">
+          FX source on GitHub
+        </a>
+      </footer>
       <Suspense>
         <Studio />
       </Suspense>

@@ -2,14 +2,17 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
+import { ZoneBreadcrumb } from "@/components/zone-breadcrumb";
 import {
   breadcrumbId,
   breadcrumbJsonLd,
   webPageId,
+  ogSiteName,
   organizationId,
   personId,
   siteDescription,
   siteName,
+  siteTitle,
   siteUrl,
   websiteId,
 } from "@/lib/site";
@@ -72,8 +75,8 @@ export const metadata: Metadata = {
   openGraph: {
     description: siteDescription,
     locale: "en_US",
-    siteName,
-    title: "FX — Dither, ASCII & LED for Images & Video",
+    siteName: ogSiteName,
+    title: siteTitle,
     type: "website",
     url: siteUrl,
   },
@@ -89,12 +92,17 @@ export const metadata: Metadata = {
     },
     index: true,
   },
-  title: "FX — Dither, ASCII & LED for Images & Video",
+  // Inner pages inherit the template; the app ships one route today, but a flat
+  // string means anything added later has no title pattern to fall into.
+  title: {
+    default: siteTitle,
+    template: `%s | ${siteName}`,
+  },
   twitter: {
     card: "summary_large_image",
     creator: "@mattblode",
     description: siteDescription,
-    title: "FX — Dither, ASCII & LED for Images & Video",
+    title: siteTitle,
   },
   verification: {
     google: "mFwyBIbXTaKK4uF_NA0MzVWFyY40hPgBjFObg3rje04",
@@ -131,7 +139,7 @@ const structuredData = {
     {
       "@id": webPageId,
       "@type": "WebPage",
-      alternateName: "FX — Image & Video Effects",
+      alternateName: "FX: image and video effects",
       author: { "@id": personId },
       dateModified: "2026-07-17",
       datePublished: "2026-01-14",
@@ -194,8 +202,27 @@ export default function RootLayout({
           type="application/ld+json"
         />
       </head>
-      <body className="h-full antialiased">
-        <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
+      <body className="flex h-full flex-col antialiased">
+        {/*
+          The trail lives here rather than in `page.tsx` because the studio is
+          inside a Suspense boundary that never resolves during prerender, and
+          everything under it is absent from the served HTML. The sidebar
+          wrapper is a `flex` row, so a sibling inside it would become a column
+          beside the sidebar; the strip has to sit above the whole shell.
+
+          Its height is `--zone-trail-height`, which globals.css also uses to
+          push the fixed sidebar panel down out of the way. `min-h-0 flex-1`
+          overrides the wrapper's own `min-h-svh`, which would otherwise make
+          the page exactly one strip taller than the viewport.
+
+          This app serves one route, so "root page only" holds.
+        */}
+        <div className="flex h-(--zone-trail-height) shrink-0 items-center border-b px-4">
+          <ZoneBreadcrumb product="FX" />
+        </div>
+        <SidebarProviderWrapper className="min-h-0 flex-1">
+          {children}
+        </SidebarProviderWrapper>
       </body>
     </html>
   );
