@@ -3,9 +3,15 @@ export const siteUrl = "https://blode.co/fx";
 
 export const siteName = "FX";
 
-/** Product first, then a colon, under 60 characters. Not a pipe, not a dash. */
+/**
+ * Product first, then a colon, under 60 characters. Not a pipe, not a dash.
+ *
+ * "Blue noise" leads because that is the term the impressions arrive on:
+ * blue-noise.blode.co redirects here, and its Search Console queries were
+ * landing on a title that never said the words.
+ */
 export const siteTitle =
-  "FX: dither, ASCII and LED effects for images and video";
+  "FX: blue noise dither, ASCII and LED effects for images";
 
 /**
  * og:site_name is the person, not the product, on every blode.co path. The 33
@@ -15,7 +21,7 @@ export const siteTitle =
 export const ogSiteName = "Matthew Blode";
 
 export const siteDescription =
-  "Turn images and video into blue noise dithering, ASCII art, or an LED dot matrix. Free, fast, client-side — nothing leaves your browser.";
+  "Turn any image or video into blue noise dithering, ASCII art, or an LED dot matrix. Free and fully client-side: nothing ever leaves your browser.";
 
 // Public client-side token, safe to ship. Hardcoded so every zone app shares
 // one project without 30 separate Vercel env vars.
