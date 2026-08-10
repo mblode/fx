@@ -10,10 +10,14 @@ import type { NextConfig } from "next";
 // - us.posthog.com: the PostHog toolbar calls the app host, not ingestion.
 //   internal-j.posthog.com is deliberately left out: that's PostHog's own
 //   telemetry about the toolbar, and blocking it costs us nothing.
+// - 'unsafe-eval' in dev only: Turbopack's HMR runtime evals module code, so
+//   without this the dev server logs a CSP violation on every hot update.
+//   Production is unaffected.
+const isDev = process.env.NODE_ENV === "development";
 const PH_PROXY = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "";
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${PH_PROXY}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${PH_PROXY}`,
   `style-src 'self' 'unsafe-inline' ${PH_PROXY}`,
   `img-src 'self' data: blob: ${PH_PROXY}`,
   "media-src 'self' blob: data:",
@@ -42,12 +46,19 @@ const nextConfig: NextConfig = {
   // Security headers. HSTS is intentionally omitted: Vercel already sends
   // `max-age=63072000`, and adding includeSubDomains/preload here would apply
   // to every blode.co subdomain irreversibly.
+  //
+  // Every matching rule applies in array order and a later one wins per header
+  // key, so the catch-all comes first and per-route overrides after.
   async headers() {
     return [
       {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Legacy fallback for the CSP's `frame-ancestors 'none'`, for the
+          // handful of clients that never implemented that directive. DENY
+          // rather than SAMEORIGIN so the two agree.
+          { key: "X-Frame-Options", value: "DENY" },
           {
             key: "Permissions-Policy",
             value:
