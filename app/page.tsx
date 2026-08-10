@@ -18,13 +18,13 @@ export default function Page() {
   return (
     <>
       <h1 className="sr-only">
-        FX: dither, ASCII and LED tools for images and video
+        FX: blue noise dither, ASCII and LED tools for images and video
       </h1>
       <p className="sr-only">
         FX renders images and video in your browser using one of three modes:
         blue noise dithering, ASCII art, or an LED dot matrix. Processing runs
-        entirely on your device — nothing is uploaded. Export stills as PNG and
-        video as MP4.
+        entirely on your device, and nothing is uploaded. Export stills as PNG
+        and video as MP4.
       </p>
       <ul className="sr-only">
         {MODE_OPTIONS.map((option) => (
