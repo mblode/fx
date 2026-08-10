@@ -49,9 +49,11 @@ export const metadata: Metadata = {
   category: "technology",
   creator: "Matthew Blode",
   description: siteDescription,
+  // Paths without `/fx`: `metadataBase` already carries the zone, and Next
+  // joins rather than replaces, so spelling the prefix here would double it.
   icons: {
-    apple: [{ url: "/fx/apple-icon.png" }],
-    icon: [{ url: "/fx/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png" }],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
   },
   keywords: [
     "blue noise",
@@ -70,8 +72,14 @@ export const metadata: Metadata = {
     "dither video",
     "ascii art video",
   ],
-  manifest: "/fx/manifest.json",
-  metadataBase: new URL("https://blode.co"),
+  manifest: "/manifest.json",
+  // The zone URL, not the bare origin (Rule 11). Only correct because the card
+  // is a generated `opengraph-image.tsx` route: Next does not prefix those with
+  // `basePath`, so `metadataBase` supplies the prefix exactly once. Against the
+  // static PNG this replaced, the two would have stacked into `/fx/fx/…`.
+  metadataBase: new URL(siteUrl),
+  // No `images` here: `app/opengraph-image.tsx` is the card. Next reuses it for
+  // `twitter:image` too when there is no `twitter-image` file.
   openGraph: {
     description: siteDescription,
     locale: "en_US",
@@ -171,7 +179,7 @@ const structuredData = {
       primaryImageOfPage: {
         "@type": "ImageObject",
         height: 630,
-        url: `${siteUrl}/opengraph-image.png`,
+        url: `${siteUrl}/opengraph-image`,
         width: 1200,
       },
       publisher: { "@id": organizationId },
