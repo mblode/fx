@@ -2,10 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
-import { ZoneBreadcrumb } from "@/components/zone-breadcrumb";
 import {
-  breadcrumbId,
-  breadcrumbJsonLd,
   webPageId,
   ogSiteName,
   organizationId,
@@ -184,9 +181,7 @@ const structuredData = {
       },
       publisher: { "@id": organizationId },
       url: siteUrl,
-      breadcrumb: { "@id": breadcrumbId },
     },
-    breadcrumbJsonLd,
   ],
 };
 
@@ -211,26 +206,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex h-full flex-col antialiased">
-        {/*
-          The trail lives here rather than in `page.tsx` because the studio is
-          inside a Suspense boundary that never resolves during prerender, and
-          everything under it is absent from the served HTML. The sidebar
-          wrapper is a `flex` row, so a sibling inside it would become a column
-          beside the sidebar; the strip has to sit above the whole shell.
-
-          Its height is `--zone-trail-height`, which globals.css also uses to
-          push the fixed sidebar panel down out of the way. `min-h-0 flex-1`
-          overrides the wrapper's own `min-h-svh`, which would otherwise make
-          the page exactly one strip taller than the viewport.
-
-          This app serves one route, so "root page only" holds.
-        */}
-        <div className="flex h-(--zone-trail-height) shrink-0 items-center border-b px-4">
-          <ZoneBreadcrumb product="FX" />
-        </div>
-        <SidebarProviderWrapper className="min-h-0 flex-1">
-          {children}
-        </SidebarProviderWrapper>
+        <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
       </body>
     </html>
   );
