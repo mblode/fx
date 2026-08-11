@@ -48,30 +48,3 @@ export const websiteId = `${host}/#website`;
 
 // Zone-local nodes keep the zone in the id.
 export const webPageId = `${siteUrl}/#webpage`;
-export const breadcrumbId = `${siteUrl}/#breadcrumb`;
-
-/**
- * The root crumb is named for the person, not "Home": it is the one piece of
- * chrome every zone shows above the fold. `components/zone-breadcrumb` renders
- * the same trail visibly, and Google treats a mismatch between the two as a
- * markup error, so change them together.
- */
-export const breadcrumbJsonLd = {
-  "@id": breadcrumbId,
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      item: `${host}/`,
-      name: "Matthew Blode",
-      position: 1,
-    },
-    {
-      "@type": "ListItem",
-      item: `${host}/projects`,
-      name: "Projects",
-      position: 2,
-    },
-    { "@type": "ListItem", item: siteUrl, name: siteName, position: 3 },
-  ],
-};
