@@ -1,5 +1,6 @@
 import { renderZoneOgImage } from "@/app/og-image-shared";
-import { siteName, siteTitle } from "@/lib/site";
+import { OgLogo } from "@/app/og-logo";
+import { siteTitle } from "@/lib/site";
 
 export {
   OG_CONTENT_TYPE as contentType,
@@ -22,11 +23,9 @@ export { siteTitle as alt } from "@/lib/site";
  */
 export default function OpengraphImage() {
   return renderZoneOgImage({
-    badge: siteName.toUpperCase(),
-    eyebrow: "blode.co/fx",
-    // Shorter than the meta description, which runs long for the SERP. A card
-    // is read in a feed, at a glance.
-    subtitle: "Blue noise, ASCII and LED effects. Nothing leaves your browser.",
+    background: "#0a0a0a",
+    color: "#e5e5e5",
+    logo: <OgLogo />,
     title: siteTitle,
   });
 }
