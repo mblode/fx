@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
+import { ZoneBreadcrumb } from "@/components/zone-breadcrumb";
 import {
+  breadcrumbId,
   webPageId,
   ogSiteName,
   organizationId,
@@ -146,6 +148,7 @@ const structuredData = {
       "@type": "WebPage",
       alternateName: "FX: image and video effects",
       author: { "@id": personId },
+      breadcrumb: { "@id": breadcrumbId },
       dateModified: "2026-07-17",
       datePublished: "2026-01-14",
       description: siteDescription,
@@ -182,6 +185,33 @@ const structuredData = {
       publisher: { "@id": organizationId },
       url: siteUrl,
     },
+    // Rule 4: the trail starts at the blode.co root, named for the person, and
+    // matches the visible <ZoneBreadcrumb> below exactly (Google treats a
+    // mismatch between the two as a markup error).
+    {
+      "@id": breadcrumbId,
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          item: "https://blode.co/",
+          name: "Matthew Blode",
+          position: 1,
+        },
+        {
+          "@type": "ListItem",
+          item: "https://blode.co/projects",
+          name: "Projects",
+          position: 2,
+        },
+        {
+          "@type": "ListItem",
+          item: siteUrl,
+          name: siteName,
+          position: 3,
+        },
+      ],
+    },
   ],
 };
 
@@ -206,6 +236,17 @@ export default function RootLayout({
         />
       </head>
       <body className="flex h-full flex-col antialiased">
+        {/*
+          The studio (AppSidebar + canvas) is entirely client-side, mounted
+          inside a <Suspense> that never resolves during prerender, so this
+          row lives out here in the server-rendered layout instead of sharing
+          a line with that chrome. It also defines --zone-trail-height, which
+          the app sidebar's fixed desktop container reads to offset its top
+          instead of painting over this row (see components/ui/sidebar.tsx).
+        */}
+        <div className="z-20 flex h-(--zone-trail-height) shrink-0 items-center border-border border-b bg-background px-4">
+          <ZoneBreadcrumb product={siteName} />
+        </div>
         <SidebarProviderWrapper>{children}</SidebarProviderWrapper>
       </body>
     </html>

@@ -48,3 +48,4 @@ export const websiteId = `${host}/#website`;
 
 // Zone-local nodes keep the zone in the id.
 export const webPageId = `${siteUrl}/#webpage`;
+export const breadcrumbId = `${siteUrl}/#breadcrumb`;

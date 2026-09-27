@@ -249,7 +249,11 @@ function Sidebar({
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden w-(--sidebar-width) transition-[left,right,width] duration-200 [transition-timing-function:var(--ease-move)] md:flex",
+          // `top-(--zone-trail-height)` rather than `inset-y-0`: the app
+          // layout's zone breadcrumb row (app/layout.tsx) is also fixed to
+          // the viewport, so this sidebar has to start below it or it paints
+          // over the trail. See --zone-trail-height in app/globals.css.
+          "fixed top-(--zone-trail-height) bottom-0 z-10 hidden w-(--sidebar-width) transition-[left,right,width] duration-200 [transition-timing-function:var(--ease-move)] md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",

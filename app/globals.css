@@ -47,6 +47,13 @@
 }
 
 :root {
+  /*
+   * Height of the visible zone breadcrumb row in app/layout.tsx. The app
+   * sidebar's fixed desktop container (components/ui/sidebar.tsx) reads this
+   * to offset its top instead of painting over the trail, since both are
+   * `fixed`/pinned to the viewport rather than stacked in normal flow.
+   */
+  --zone-trail-height: 2.25rem;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.18 0 0);
