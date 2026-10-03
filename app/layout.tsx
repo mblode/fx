@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Geist_Mono, Inter } from "next/font/google";
 
 import { SidebarProviderWrapper } from "@/components/providers/sidebar-provider-wrapper";
 import { ZoneBreadcrumb } from "@/components/zone-breadcrumb";
@@ -18,21 +18,16 @@ import {
 
 import "./globals.css";
 
-const glide = localFont({
-  src: [
-    { path: "./fonts/glide-variable.woff2", style: "normal" },
-    { path: "./fonts/glide-variable-italic.woff2", style: "italic" },
-  ],
-  variable: "--font-glide",
-  weight: "100 950",
+const inter = Inter({
   display: "swap",
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
-const glideMono = localFont({
-  src: "./fonts/glide-mono.woff2",
-  variable: "--font-glide-mono",
-  weight: "400",
+const geistMono = Geist_Mono({
   display: "swap",
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
@@ -222,7 +217,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={`h-full ${glide.variable} ${glideMono.variable}`}
+      className={`h-full ${inter.variable} ${geistMono.variable}`}
       lang="en"
       style={{ colorScheme: "light dark" }}
     >
