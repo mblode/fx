@@ -4,7 +4,9 @@ import posthog from "posthog-js";
 import { posthogHost, posthogKey } from "@/lib/site";
 
 const isLocalHost = () => {
-  if (typeof window === "undefined") {return false;}
+  if (typeof window === "undefined") {
+    return false;
+  }
   const host = window.location.hostname;
   return (
     host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost")
@@ -36,9 +38,13 @@ const matchesMarker = (value: unknown, markers: string[]) =>
   typeof value === "string" && markers.some((m) => value.includes(m));
 
 const isNoisyException = (event: CaptureResult): boolean => {
-  if (event.event !== "$exception") {return false;}
+  if (event.event !== "$exception") {
+    return false;
+  }
   const exceptions = event.properties?.$exception_list;
-  if (!Array.isArray(exceptions)) {return false;}
+  if (!Array.isArray(exceptions)) {
+    return false;
+  }
   return exceptions.some((exception) => {
     if (
       matchesMarker(exception?.value, EXTENSION_EXCEPTION_MARKERS) ||
@@ -71,7 +77,10 @@ if (!isLocalHost()) {
   posthog.init(posthogKey, {
     api_host: posthogHost,
     before_send: (event) => {
-      if (event && isNoisyException(event)) {return null;}
+      if (!event || isNoisyException(event)) {
+        return null;
+      }
+      event.properties.project = "fx";
       return event;
     },
     defaults: "2026-05-30",
